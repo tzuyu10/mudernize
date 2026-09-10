@@ -1,0 +1,7 @@
+.toggle{height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 11px;border:1px solid #d9e1ea;border-radius:999px;background:#f4f6f9;color:#41546c;font-size:11px;font-weight:650;white-space:nowrap}
+.toggle:hover{background:#e9eef5;color:#054191;border-color:#b9c9dc}
+.toggle:focus-visible{outline:3px solid #095baf35;outline-offset:2px}
+.toggle svg{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+:global(html[data-theme="dark"]) .toggle{background:#172235;border-color:#35445a;color:#f2dc68}
+:global(html[data-theme="dark"]) .toggle:hover{background:#223149;border-color:#53657d;color:#fff}
+@media(max-width:800px){.toggle{width:36px;padding:0}.toggle span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}}

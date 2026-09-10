@@ -1,0 +1,11 @@
+.button{display:flex;align-items:center;gap:9px;border:0;background:transparent;color:#6d7c90;font-size:12px}
+.button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sidebar{width:100%;padding:8px 13px;text-align:left;border-radius:8px}
+.sidebar:hover{background:#fff0f1;color:#a9324b}
+.icon{width:36px;height:36px;flex:0 0 36px;justify-content:center;border:1px solid #dfe5ed;border-radius:50%;background:#f4f6f9;color:#53657b}
+.icon:hover{background:#fff0f1;border-color:#edc6cf;color:#a9324b}
+.button:focus-visible{outline:3px solid #a9324b28;outline-offset:2px}
+.button:disabled{opacity:.55;cursor:wait}
+:global(html[data-theme="dark"]) .button{color:#aab6c6}
+:global(html[data-theme="dark"]) .sidebar:hover,:global(html[data-theme="dark"]) .icon:hover{background:#3a1f29;color:#ffb3c2;border-color:#704050}
+:global(html[data-theme="dark"]) .icon{background:#172235;border-color:#35445a}
