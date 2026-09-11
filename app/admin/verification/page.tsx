@@ -1,4 +1,5 @@
-import {requireUser,batches} from '@/lib/auth'
+import {requireUser} from '@/lib/auth'
+import {getBatchConfigs} from '@/lib/batch-data'
 import {displayLabel} from '@/lib/labels'
 import {verifyRegistration} from './actions'
 import ConfirmButton from '@/components/ConfirmButton'
@@ -7,6 +8,7 @@ type SearchParams={error?:string;batch?:string;status?:string;q?:string}
 
 export default async function Page({searchParams}:{searchParams:SearchParams}) {
  const {supabase}=await requireUser('clinical_head')
+ const {data:batchConfigs}=await getBatchConfigs(true),batches=batchConfigs.map(batch=>batch.name)
  const status=searchParams.status||'pending'
  const search=(searchParams.q||'').trim().toLowerCase()
  let query=supabase.from('registrations').select('registration_id,student_id,schedule_id,duty_type,absence_date,duty_count,receipt_number,receipt_url,medcert_path,excuse_letter_path,status,recommendation,remarks,submitted_at,users!registrations_student_id_fkey!inner(first_name,last_name,student_number,batch),mud_schedules(date,time_slot)').eq('status',status).order('submitted_at').limit(100)

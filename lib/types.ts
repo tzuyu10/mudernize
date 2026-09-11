@@ -1,5 +1,5 @@
 export type Role = 'student' | 'clinical_head'
-export type Batch = 'Sanghaya' | 'Astraea' | 'Solaris'
+export type Batch = string
 export type YearLevel = '2nd' | '3rd' | '4th'
 export type DutyType = 'excused' | 'unexcused' | 'waived'
 export type RegistrationStatus = 'pending' | 'verified' | 'denied' | 'ongoing' | 'completed'

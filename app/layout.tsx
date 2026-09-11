@@ -8,6 +8,11 @@ const sans=Manrope({weight:['400','500','600','700','800'],subsets:['latin'],var
 export const metadata: Metadata = {
   title: 'MUDernize',
   description: 'A streamlined Make-Up Duty management system',
+  icons: {
+    icon: [{ url: '/logos/mudernize-logo.png', type: 'image/png' }],
+    shortcut: '/logos/mudernize-logo.png',
+    apple: '/logos/mudernize-logo.png',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

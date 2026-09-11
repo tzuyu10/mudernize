@@ -1,4 +1,5 @@
-import {requireUser,batches} from '@/lib/auth'
+import {requireUser} from '@/lib/auth'
+import {getBatchConfigs} from '@/lib/batch-data'
 import {displayLabel} from '@/lib/labels'
 import {createSchedule} from './actions'
 import ScheduleCreateModal from '@/components/ScheduleCreateModal'
@@ -7,7 +8,7 @@ import ConfirmButton from '@/components/ConfirmButton'
 import ResetAfterSubmitForm from '@/components/ResetAfterSubmitForm'
 import {getAllSchedules} from '@/lib/cached-data'
 
-function Fields({schedule}:{schedule:any}){
+function Fields({schedule,batches}:{schedule:any;batches:string[]}){
  return <div className="admin-form-grid">
   <label>Date<input type="date" name="date" defaultValue={schedule.date} required/></label>
   <label>Time<select name="time_slot" defaultValue={schedule.time_slot}><option>AM</option><option>PM</option></select></label>
@@ -21,7 +22,7 @@ function Fields({schedule}:{schedule:any}){
 
 export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
  await requireUser('clinical_head')
- const {data,error}=await getAllSchedules(),schedules=data||[]
+ const [{data,error},{data:batchConfigs}]=await Promise.all([getAllSchedules(),getBatchConfigs()]),schedules=data||[],batches=batchConfigs.map(batch=>batch.name)
  return <div className="space-y-6">
   <div className="admin-page-heading"><div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Duty Schedules</h1><p className="muted text-sm">Create and manage the dates available to students.</p></div><ScheduleCreateModal batches={batches}/></div>
   {(searchParams.error||error)&&<p role="alert" className="notice">{searchParams.error||error?.message}</p>}
@@ -29,7 +30,7 @@ export default async function Page({searchParams}:{searchParams:{error?:string;m
   <p className="muted text-sm">Dates and audiences are locked once a slot has registrations. Select a calendar entry to open its settings.</p>
   <AdminScheduleCalendar schedules={schedules}/>
   <h2 className="text-lg font-semibold">Schedule Details</h2>
-  <div className="space-y-3">{schedules.map(schedule=>{const editFormId=`schedule-edit-${schedule.schedule_id}`;return <details id={`schedule-${schedule.schedule_id}`} key={schedule.schedule_id} className="dashboardCard p-5"><summary className="cursor-pointer font-semibold">{schedule.date} · {schedule.time_slot} · {schedule.batch||'All Batches'} <span className="badge">{schedule.current_count}/{schedule.max_capacity} · {displayLabel(schedule.status)}</span></summary><ResetAfterSubmitForm id={editFormId} action={createSchedule} className="space-y-4 mt-4"><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><Fields schedule={schedule}/></ResetAfterSubmitForm><div className="schedule-actions"><ConfirmButton form={editFormId} className="primary" message="Save these schedule changes?">Save Changes</ConfirmButton><form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton message="Delete this empty schedule? This action cannot be undone." name="operation" value="delete" className="dangerButton">Delete Empty Schedule</ConfirmButton></form></div></details>})}</div>
+  <div className="space-y-3">{schedules.map(schedule=>{const editFormId=`schedule-edit-${schedule.schedule_id}`;return <details id={`schedule-${schedule.schedule_id}`} key={schedule.schedule_id} className="dashboardCard p-5"><summary className="cursor-pointer font-semibold">{schedule.date} · {schedule.time_slot} · {schedule.batch||'All Batches'} <span className="badge">{schedule.current_count}/{schedule.max_capacity} · {displayLabel(schedule.status)}</span></summary><ResetAfterSubmitForm id={editFormId} action={createSchedule} className="space-y-4 mt-4"><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><Fields schedule={schedule} batches={batches}/></ResetAfterSubmitForm><div className="schedule-actions"><ConfirmButton form={editFormId} className="primary" message="Save these schedule changes?">Save Changes</ConfirmButton><form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton message="Delete this empty schedule? This action cannot be undone." name="operation" value="delete" className="dangerButton">Delete Empty Schedule</ConfirmButton></form></div></details>})}</div>
   {!schedules.length&&!error&&<div className="dashboardCard p-8 text-center muted">No schedules have been created.</div>}
  </div>
 }

@@ -40,17 +40,18 @@
 .brandLight { font-weight: 500; }
 .brandIcon { width: 34px; height: 36px; position: relative; display: grid; place-items: center; border-radius: 10px; font-size: 27px; font-weight: 700; line-height: 1; color: white; background: linear-gradient(145deg, #095baf, #062a78); box-shadow: 0 3px 7px #062a7815; }
 .brandIcon > span { color: #eedd55; position: absolute; right: -4px; top: -8px; font-size: 24px; text-shadow: 1px 1px #f1f2df; }
-.brandIcon{overflow:hidden;background:#fff}.brandIcon img{display:block;width:100%;height:100%;object-fit:cover}
+.brandIcon{overflow:hidden;background:transparent;box-shadow:none}.brandIcon img{display:block;width:100%;height:100%;object-fit:contain}
 .menu { justify-self: end; display: flex; align-items: center; gap: 29px; font-size: 12px; font-weight: 500; }
 .menu button { color: #284766; background: transparent; border: 0; min-height: 36px; }
 .menu button:hover, .footer button:hover { color: #095baf; text-decoration: underline; text-underline-offset: 4px; }
 .menu .helpButton { display: inline-flex; align-items: center; gap: 7px; border: 1px solid #6a829629; border-radius: 7px; padding: 5px 12px; background: #ffffff28; }
+.themeControl { display: inline-flex; flex: none; }
 .intro { justify-self: center; display: flex; align-items: center; gap: 12px; margin: 0; text-align: center; color: #607587; font-size: 9px; font-weight: 650; letter-spacing: 2px; }
 .introLine { height: 1px; width: 23px; background: #9babb880; }
 
-.main { flex: 1; width: 100%; max-width: var(--shell); align-self: center; display: grid; place-items: center; padding: 24px 20px; outline: none; }
+.main { flex: 1; width: 100%; max-width: var(--shell); min-width: 0; align-self: center; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 24px 20px; outline: none; }
 
-.card { width: 430px; max-width: 100%; position: relative; border: 1px solid #ffffffd4; border-radius: 22px; padding: 26px 32px 24px; margin: 8px 0 18px; background: linear-gradient(155deg, #ffffffc7, #fffffff0 78%); box-shadow: 0 2px 4px #062a780d, 0 15px 50px #355c7f14, inset 0 1px 0 #ffffff; backdrop-filter: blur(20px); }
+.card { width: min(430px, 100%); min-width: 0; justify-self: center; position: relative; border: 1px solid #ffffffd4; border-radius: 22px; padding: 26px 32px 24px; margin: 8px 0 18px; background: linear-gradient(155deg, #ffffffc7, #fffffff0 78%); box-shadow: 0 2px 4px #062a780d, 0 15px 50px #355c7f14, inset 0 1px 0 #ffffff; backdrop-filter: blur(20px); }
 .card::before { content: ""; position: absolute; inset: -1px; border-radius: 22px; pointer-events: none; border-top: 2px solid #fff; }
 
 /* Emblem sits beside the heading block, not above it. */
@@ -69,6 +70,7 @@
 .inputWrap input { padding: 11px 0 !important; margin: 0; width: 100%; min-width: 0; border: 0; outline: none; background: transparent; border-radius: 0; font-family: inherit; font-size: 12px; color: var(--ink); line-height: 20px; }
 .inputWrap input:focus { outline: none; }
 .inputWrap input::placeholder { color: #8491a1; }
+.inputWrap input::-ms-reveal, .inputWrap input::-ms-clear { display: none; }
 .eyeButton { color: #8190a2; display: grid; place-items: center; background: transparent; border: 0; align-self: stretch; padding: 0 0 0 5px; min-width: 27px; flex-shrink: 0; }
 .eyeButton:hover { color: #095baf; }
 .forgot { display: block; margin: 9px 0 0 auto; padding: 0; background: none; border: 0; color: #53687d; font-size: 10px; min-height: 18px; }
@@ -94,7 +96,7 @@
 .submit:disabled { opacity: .7; }
 .divider { display: flex; align-items: center; gap: 10px; color: #8c97a3; font-size: 8px; letter-spacing: 1.2px; margin: 20px 0 13px; }
 .divider > span { flex: 1; height: 1px; background: #e2e7ed; }
-.batchRow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.batchRow { display: grid; grid-template-columns: repeat(auto-fit,minmax(105px,1fr)); gap: 6px; }
 .batchRow button { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 4px; border: 1px solid #e4e9ef; border-radius: 7px; font-size: 9px; font-weight: 550; background: #fff9; color: #627389; min-height: 36px; }
 .batchRow img { object-fit: contain; }
 .batchRow button:hover, .batchRow .batchActive { border-color: #8aacd0; background: #edf4fb; color: #062a78; }
@@ -180,12 +182,17 @@
 :global(html[data-theme="dark"]) .options button{color:#d7e0eb}
 :global(html[data-theme="dark"]) .options button:hover,:global(html[data-theme="dark"]) .options button:focus,:global(html[data-theme="dark"]) .options button[aria-selected="true"]{background:#1a2b40}
 :global(html[data-theme="dark"]) .selectedName{color:#e8eef6!important}
-:global(html[data-theme="dark"]) .batchRow button span{color:#e4edf7!important}
+:global(html[data-theme="dark"]) .batchRow button span{
+  color:color-mix(in srgb,var(--batch-color,#e4edf7) 58%,white)!important;
+  font-weight:700;
+  letter-spacing:.01em;
+  text-shadow:0 0 8px color-mix(in srgb,var(--batch-color,#e4edf7) 70%,transparent),0 1px 1px #000;
+}
 :global(html[data-theme="dark"]) .batchRow button{background:#101c2ccc;border-color:#304157}
 :global(html[data-theme="dark"]) .divider>span{background:#344155}
 :global(html[data-theme="dark"]) .dialog{background:#101c2c;color:#edf3fa;border-color:#3a4c62}
 :global(html[data-theme="dark"]) .dialog p{color:#aebccd}
 :global(html[data-theme="dark"]) .submit{background:linear-gradient(112deg,#1474cf,#0953a4 58%,#103c85);border-color:#3784d0;color:#fff;box-shadow:0 7px 22px #0005,inset 0 1px 0 #ffffff35}:global(html[data-theme="dark"]) .submit:hover:not(:disabled){background:linear-gradient(112deg,#2087e5,#0a5db8);filter:none}:global(html[data-theme="dark"]) .eyeButton{color:#afc0d3;background:#152337;border-left:1px solid #31445c;margin-right:-12px;padding:0 12px}:global(html[data-theme="dark"]) .eyeButton:hover{color:#fff;background:#1c3048}:global(html[data-theme="dark"]) .forgot{color:#aebed0}:global(html[data-theme="dark"]) .forgot:hover{color:#8fc5ff}:global(html[data-theme="dark"]) .batchRow button{color:#dbe6f2;background:#111f31;border-color:#405269}:global(html[data-theme="dark"]) .batchRow button:hover,:global(html[data-theme="dark"]) .batchRow .batchActive{background:#1c3048;border-color:#70a9df;color:#fff}:global(html[data-theme="dark"]) .options strong{color:#edf3fa!important}:global(html[data-theme="dark"]) .menu .helpButton{background:#15243a;border-color:#41546b;color:#d7e4f2}:global(html[data-theme="dark"]) .dialogDone{background:#1269be;border:1px solid #4b91d2}:global(html[data-theme="dark"]) .dialogClose{background:#1a2b40;color:#d6e1ed}
 
-@media(max-width:680px){.menu>button:not(.helpButton){display:none}.menu{gap:8px}.footer>div{width:100%;justify-content:center}.page{overflow:auto}}
+@media(max-width:680px){.menu>button:not(.helpButton){display:none}.menu{gap:8px}.footer>div{width:100%;justify-content:center}.page{overflow-x:hidden;overflow-y:auto}}
 @media(max-width:410px){.header{flex-direction:row}.menu{width:auto;justify-content:flex-end}.wordmark>span:last-child{display:none}.card{padding-inline:18px}.batchRow{grid-template-columns:1fr}.batchRow button{justify-content:flex-start;padding-inline:12px}}

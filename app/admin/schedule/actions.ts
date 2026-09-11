@@ -1,5 +1,6 @@
 'use server'
-import {requireUser,batches} from '@/lib/auth'
+import {requireUser} from '@/lib/auth'
+import {getBatchRule} from '@/lib/batch-data'
 import {redirect} from 'next/navigation'
 import {revalidatePath,revalidateTag} from 'next/cache'
 export async function createSchedule(form:FormData) {
@@ -10,7 +11,8 @@ export async function createSchedule(form:FormData) {
  let error
  if(form.get('operation')==='delete') ({error}=await supabase.from('mud_schedules').delete().eq('schedule_id',id))
  else {
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(payload.date)||!Number.isInteger(payload.max_capacity)||payload.max_capacity<1||payload.max_capacity>200||!payload.clinical_area||!['AM','PM'].includes(payload.time_slot)||!['all','2nd','3rd','4th'].includes(payload.year_level)||!['open','closed'].includes(payload.status)||(batch&&!batches.includes(batch as any))) redirect('/admin/schedule?error=Invalid+schedule+details')
+  if(batch){try{await getBatchRule(batch)}catch{redirect('/admin/schedule?error=Choose+an+active+batch')}}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(payload.date)||!Number.isInteger(payload.max_capacity)||payload.max_capacity<1||payload.max_capacity>200||!payload.clinical_area||!['AM','PM'].includes(payload.time_slot)||!['all','2nd','3rd','4th'].includes(payload.year_level)||!['open','closed'].includes(payload.status)) redirect('/admin/schedule?error=Invalid+schedule+details')
   if(id) ({error}=await supabase.from('mud_schedules').update(payload).eq('schedule_id',id))
   else ({error}=await supabase.from('mud_schedules').insert({...payload,created_by:user.id}))
  }

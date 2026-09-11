@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom'
 import { login } from './actions'
 import styles from './login.module.css'
 import ThemeToggle from '@/components/ThemeToggle'
+import type {BatchConfig} from '@/lib/batch-config'
 
 type IconName = 'arrow' | 'user' | 'lock' | 'eye' | 'eyeOff' | 'chevron' | 'shield' | 'close' | 'check' | 'help'
 function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
@@ -23,13 +24,6 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>
 }
 
-// Replace these files with your official batch logos, or change the paths here.
-const categories = [
-  { name: 'Sanghaya', detail: 'Student portal', logo: '/logos/sanghaya.png', color: '#ffacec' },
-  { name: 'Astraea', detail: 'Student portal', logo: '/logos/astraea.png', color: '#401268' },
-  { name: 'Solaris', detail: 'Student portal', logo: '/logos/solaris.png', color: '#7a0000' },
-  { name: 'Admin', detail: 'Clinical Head portal', logo: '/logos/slcn-logo.png' },
-]
 const information = {
   about: { title: 'A little more about MUDernize', text: 'MUDernize brings make-up duty registration, clinical schedules, announcements, and progress into one place for Sanghaya, Astraea, Solaris, and Clinical Heads.' },
   how: { title: 'Your next duty, in three steps', text: '1. Sign in with your assigned ID, category, and password.\n2. Choose an available duty schedule and upload your required documents.\n3. Submit for Clinical Head review, then follow your approved schedule in My schedule.' },
@@ -43,7 +37,8 @@ function SubmitButton() {
   return <button type="submit" className={styles.submit} disabled={pending}>{pending ? 'Signing you in…' : 'Sign in'}{pending ? <span className={styles.spinner} /> : <Icon name="arrow" />}</button>
 }
 
-export default function LoginScreen({ error, message }: { error?: string; message?: string }) {
+export default function LoginScreen({ error, message,batches }: { error?: string; message?: string;batches:BatchConfig[] }) {
+  const categories=[...batches.map(batch=>({name:batch.name,detail:`${batch.year_level} year · Student portal`,logo:batch.logo_path,color:batch.theme_color})),{name:'Admin',detail:'Clinical Head portal',logo:'/logos/slcn-logo.png',color:undefined}]
   const [category, setCategory] = useState('')
   const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -88,13 +83,13 @@ export default function LoginScreen({ error, message }: { error?: string; messag
     <div className={styles.scenery} aria-hidden="true"><div className={styles.halo} /><div className={styles.orbit} /><div className={styles.orbitInner} /><div className={styles.horizon} /></div>
     <a className={styles.skip} href="#sign-in">Skip to sign in</a>
     <header className={styles.header}>
-      <a href="/login" className={styles.wordmark} aria-label="MUDernize home"><span className={styles.brandIcon}><img src="/logos/mudernize-logo.svg" alt=""/></span><span>MUD<span className={styles.brandLight}>ernize</span></span></a>
+      <a href="/login" className={styles.wordmark} aria-label="MUDernize home"><span className={styles.brandIcon}><img src="/logos/mudernize-logo.png" alt=""/></span><span>MUD<span className={styles.brandLight}>ernize</span></span></a>
       <div className={styles.intro}><span className={styles.introLine} />YOUR CLINICAL JOURNEY, SIMPLIFIED<span className={styles.introLine} /></div>
       <nav className={styles.menu} aria-label="Main navigation">
         <button type="button" onClick={() => showInfo('about')}>About</button>
         <button type="button" onClick={() => showInfo('how')}>How it works</button>
         <button type="button" className={styles.helpButton} onClick={() => showInfo('help')}><Icon name="help" size={16} />Help center</button>
-        <ThemeToggle />
+        <span className={styles.themeControl}><ThemeToggle /></span>
       </nav>
     </header>
     <main className={styles.main} id="sign-in" tabIndex={-1}>
@@ -160,7 +155,7 @@ export default function LoginScreen({ error, message }: { error?: string; messag
         </form>
         <div className={styles.divider}><span />HERE FOR EVERY BATCH<span /></div>
         <div className={styles.batchRow}>
-          {categories.slice(0, 3).map(c => (
+          {categories.filter(c=>c.name!=='Admin').map(c => (
             <button
               type="button"
               key={c.name}
@@ -170,7 +165,11 @@ export default function LoginScreen({ error, message }: { error?: string; messag
               aria-pressed={category === c.name}
             >
               <img src={c.logo} width={22} height={22} alt="" />
-              <span style={c.color ? { color: c.color } : undefined}>{c.name}</span>
+              <span
+                style={c.color ? { color: c.color, '--batch-color': c.color } as React.CSSProperties : undefined}
+              >
+                {c.name}
+              </span>
             </button>
           ))}
         </div>

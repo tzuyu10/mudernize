@@ -1,13 +1,13 @@
 'use server'
 import {redirect} from 'next/navigation'
 import {createAdminClient} from '@/lib/supabase/admin'
-import {accountEmail,batches} from '@/lib/auth'
+import {accountEmail} from '@/lib/auth'
 
 export async function requestPasswordReset(form:FormData) {
  const rawIdentifier=String(form.get('identifier')||'').trim()
  const category=String(form.get('category')||'')
  const success='/forgot-password?message='+encodeURIComponent('If the account details match, a Clinical Head will receive your request. Ask them for your temporary password.')
- if(![...batches,'Admin'].includes(category)) redirect(success)
+ if(!category||category.length>40) redirect(success)
  const identifier=category==='Admin'?rawIdentifier.toUpperCase():rawIdentifier
  try {accountEmail(identifier)} catch {redirect(success)}
  try {

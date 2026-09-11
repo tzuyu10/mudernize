@@ -3,9 +3,10 @@
 import {useEffect,useRef,useState} from 'react'
 import {addStudent} from '@/app/admin/students/actions'
 import ConfirmButton from '@/components/ConfirmButton'
+import type {BatchConfig} from '@/lib/batch-config'
 
 type Props={
- batches:readonly string[]
+ batches:readonly BatchConfig[]
  resetKey?:string
 }
 
@@ -30,7 +31,7 @@ export default function AddStudentForm({batches,resetKey}:Props){
   <form ref={formRef} action={addStudent} className="space-y-4 mt-5" autoComplete="off">
    <div className="grid grid-cols-2 gap-4 admin-add-student-grid">
     <label>Student Number<input name="student_number" placeholder="2025-301107" pattern="[0-9]{4}-[0-9]{6}" required/></label>
-    <label>Batch<select name="batch">{batches.map(batch=><option key={batch}>{batch}</option>)}</select><small className="muted block mt-2">2025 Sanghaya · 2024 Solaris · 2023 Astraea</small></label>
+    <label>Batch<select name="batch">{batches.map(batch=><option key={batch.name} value={batch.name}>{batch.name}</option>)}</select><small className="muted block mt-2">{batches.map(batch=>`${batch.student_year_prefix} ${batch.name}`).join(' · ')}</small></label>
     <label>First Name<input name="first_name" required maxLength={80}/></label>
     <label>Last Name<input name="last_name" required maxLength={80}/></label>
    </div>

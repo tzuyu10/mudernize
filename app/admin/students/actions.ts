@@ -1,5 +1,6 @@
 'use server'
-import {requireUser,accountEmail,batches,studentYearForBatch} from '@/lib/auth'
+import {requireUser,accountEmail} from '@/lib/auth'
+import {getBatchRule} from '@/lib/batch-data'
 import {createAdminClient} from '@/lib/supabase/admin'
 import {redirect} from 'next/navigation'
 import {revalidatePath} from 'next/cache'
@@ -10,10 +11,12 @@ export async function addStudent(form:FormData) {
  try {
   const id=String(form.get('student_number')||'').trim()
   const batch=String(form.get('batch'))
-  const year=studentYearForBatch(id,batch)
+  const rule=await getBatchRule(batch)
+  if(!id.startsWith(rule.student_year_prefix+'-'))throw new Error(`${batch} student numbers must start with ${rule.student_year_prefix}.`)
+  const year=rule.year_level
   const first=String(form.get('first_name')||'').trim(),last=String(form.get('last_name')||'').trim()
   const password=String(form.get('password')||'')
-  if(!/^\d{4}-\d{6}$/.test(id)||!batches.includes(batch as any)||!first||!last||first.length>80||last.length>80||password.length<12||password.length>128) throw new Error('Use a valid cohort student ID, names, batch, and a password of 12–128 characters.')
+  if(!/^\d{4}-\d{6}$/.test(id)||!first||!last||first.length>80||last.length>80||password.length<12||password.length>128) throw new Error('Use a valid cohort student ID, names, batch, and a password of 12–128 characters.')
   const {error}=await createAdminClient().auth.admin.createUser({email:accountEmail(id),password,email_confirm:true,app_metadata:{role:'student',student_number:id,batch,year_level:year,first_name:first,last_name:last}})
   if(error) throw error
  } catch(error) {failure=error instanceof Error?error.message:'Could not create student'}
@@ -51,5 +54,42 @@ export async function resetStudentPassword(form:FormData) {
   redirect('/admin/students?error='+encodeURIComponent(error.message))
  }
  revalidatePath('/admin/students')
+ redirect('/admin/students?message=Temporary+password+set')
+}
+
+export async function updateStudentAccount(form:FormData){
+ await requireUser('clinical_head')
+ const userId=String(form.get('user_id')||''),first=String(form.get('first_name')||'').trim(),last=String(form.get('last_name')||'').trim()
+ if(!/^[0-9a-f-]{36}$/i.test(userId)||!first||!last||first.length>80||last.length>80)redirect('/admin/students?error=Enter+valid+student+names')
+ const admin=createAdminClient()
+ const {data:authRecord,error:authReadError}=await admin.auth.admin.getUserById(userId)
+ if(authReadError||!authRecord.user)redirect('/admin/students?error='+encodeURIComponent(authReadError?.message||'Student account not found'))
+ const {error}=await admin.from('users').update({first_name:first,last_name:last}).eq('user_id',userId).eq('role','student')
+ if(error)redirect('/admin/students?error='+encodeURIComponent(error.message))
+ const {error:authError}=await admin.auth.admin.updateUserById(userId,{app_metadata:{...authRecord.user.app_metadata,first_name:first,last_name:last}})
+ if(authError)redirect('/admin/students?error='+encodeURIComponent(authError.message))
+ revalidatePath('/admin/students');revalidatePath('/student','layout')
+ redirect('/admin/students?message=Student+profile+updated')
+}
+
+export async function setStudentAccess(form:FormData){
+ await requireUser('clinical_head')
+ const userId=String(form.get('user_id')||''),active=String(form.get('active'))==='true'
+ if(!/^[0-9a-f-]{36}$/i.test(userId))redirect('/admin/students?error=Invalid+student+account')
+ const admin=createAdminClient()
+ const {error:authError}=await admin.auth.admin.updateUserById(userId,{ban_duration:active?'none':'876000h'})
+ if(authError)redirect('/admin/students?error='+encodeURIComponent(authError.message))
+ const {error}=await admin.from('users').update({is_active:active}).eq('user_id',userId).eq('role','student')
+ if(error){await admin.auth.admin.updateUserById(userId,{ban_duration:active?'876000h':'none'});redirect('/admin/students?error='+encodeURIComponent(error.message))}
+ revalidatePath('/admin/students')
+ redirect('/admin/students?message='+encodeURIComponent(active?'Student access restored.':'Student access suspended.'))
+}
+
+export async function issueStudentPassword(form:FormData){
+ await requireUser('clinical_head')
+ const userId=String(form.get('user_id')||''),password=String(form.get('password')||'')
+ if(!/^[0-9a-f-]{36}$/i.test(userId)||password.length<12||password.length>128)redirect('/admin/students?error=Use+a+temporary+password+of+12–128+characters')
+ const {error}=await createAdminClient().auth.admin.updateUserById(userId,{password})
+ if(error)redirect('/admin/students?error='+encodeURIComponent(error.message))
  redirect('/admin/students?message=Temporary+password+set')
 }

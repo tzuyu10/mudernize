@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
- <title id="title">MUDernize logo placeholder</title>
- <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b65b7"/><stop offset="1" stop-color="#054191"/></linearGradient></defs>
- <rect width="64" height="64" rx="17" fill="url(#g)"/>
- <path d="M14 45V19h8l10 14 10-14h8v26h-8V31L32 44 22 31v14z" fill="#fff"/>
- <path d="M49 8v12M43 14h12" stroke="#edd449" stroke-width="4" stroke-linecap="round"/>
-</svg>

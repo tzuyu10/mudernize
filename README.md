@@ -69,6 +69,8 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 
 - Clinical Head dashboard and analytics
 - Student account creation with automatic cohort validation
+- Batch creation, archiving, activation, and guarded deletion
+- Student profile editing, access suspension, and temporary-password management
 - Password visibility control during account creation
 - Student search and batch filtering
 - Separate Excused, Waived, and Unexcused tally columns
@@ -166,6 +168,8 @@ The system uses the following main database records:
 - Tally adjustments
 
 The production database must include the supplied constraints, indexes, triggers, storage configuration, and Row Level Security policies. These rules protect student data, validate registration transitions, reserve schedule capacity safely, and support concurrent users.
+
+For an existing database, apply `002_performance_concurrency.sql` through `005_batch_and_user_management.sql` in numeric order.
 
 ## Document requirements
 
