@@ -28,6 +28,14 @@ h1,h2,.title-font{font-family:var(--font-display),Georgia,serif}.muted,.subtext,
 .student-tally-table th:nth-child(n+4),.student-tally-table td:nth-child(n+4){min-width:180px;vertical-align:top}.student-tally-table .tally-editor{margin-top:9px}.tally-form-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:12px}.tally-form-title strong{font-size:13px}.tally-form-title span{font-size:9px;color:#748398}.student-tally-table .number-text{font-size:20px;color:#054191}html[data-theme="dark"] .tally-form-title span{color:#a3b2c5}html[data-theme="dark"] .student-tally-table .number-text{color:#8fc1ff}.student-tally-table tr{scroll-margin-top:90px}.student-tally-table .tally-editor>form{width:245px}@media(max-width:700px){.student-tally-table th:nth-child(n+4),.student-tally-table td:nth-child(n+4){min-width:165px}.student-tally-table .tally-editor>form{width:230px}}
 .badge{text-transform:capitalize}
 
+/* Keep the duty total attached to its heading instead of floating at the page edge. */
+.duty-tally-heading{margin-bottom:16px}
+.duty-tally-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.duty-tally-total{display:inline-flex;align-items:baseline;gap:6px;padding:4px 9px;border:1px solid #d5dee9;border-radius:999px;background:#fff;color:#53667d;line-height:1}
+.duty-tally-total strong{font-size:16px}
+.duty-tally-total small{font-size:10px;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+html[data-theme="dark"] .duty-tally-total{background:#172438;border-color:#3a4b62;color:#b8c5d5}
+
 /* Tally editor opens above the table without changing its dimensions. */
 .tally-editor{position:static}
 .tally-editor[open]::before{content:"";position:fixed;inset:0;z-index:80;background:#07182c80;backdrop-filter:blur(3px)}
