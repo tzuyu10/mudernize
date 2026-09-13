@@ -6,6 +6,9 @@
 -- A deferred constraint trigger reads the FINAL row at transaction completion.
 BEGIN;
 
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS middle_initial varchar(1);
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS year_section varchar(6);
+
 CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -14,6 +17,8 @@ SET search_path = public
 AS $$
 DECLARE
  m jsonb;
+ middle text;
+ year_section_value text;
 BEGIN
  SELECT raw_app_meta_data INTO m FROM auth.users WHERE id = NEW.id;
  -- A user inserted then removed in the same transaction needs no profile.
@@ -26,10 +31,18 @@ BEGIN
     OR nullif(trim(m->>'last_name'),'') IS NULL THEN
   RAISE EXCEPTION 'Names required';
  END IF;
+ middle=nullif(upper(trim(trailing '.' FROM trim(coalesce(m->>'middle_initial','')))), '');
+ IF middle IS NOT NULL AND middle !~ '^[A-Z]$' THEN
+  RAISE EXCEPTION 'Middle initial must be one letter';
+ END IF;
+ year_section_value=nullif(upper(trim(coalesce(m->>'year_section',''))), '');
  IF m->>'role'='student' AND (
     coalesce(m->>'student_number','') !~ '^[0-9]{4}-[0-9]{6}$'
     OR coalesce(m->>'batch','') NOT IN ('Sanghaya','Astraea','Solaris')
     OR coalesce(m->>'year_level','') NOT IN ('2nd','3rd','4th')
+    OR year_section_value IS NULL
+    OR year_section_value !~ '^[234]NU-[0-9]{2}$'
+    OR left(year_section_value,1)<>left(m->>'year_level',1)
  ) THEN
   RAISE EXCEPTION 'Student ID, batch and year required';
  END IF;
@@ -39,10 +52,10 @@ BEGIN
  END IF;
 
  INSERT INTO public.users(
-  user_id,student_number,admin_number,role,first_name,last_name,year_level,batch,recommendation
+  user_id,student_number,admin_number,role,first_name,middle_initial,last_name,year_level,year_section,batch,recommendation
  ) VALUES (
   NEW.id,m->>'student_number',m->>'admin_number',m->>'role',
-  m->>'first_name',m->>'last_name',m->>'year_level',m->>'batch',m->>'recommendation'
+  m->>'first_name',middle,m->>'last_name',m->>'year_level',year_section_value,m->>'batch',m->>'recommendation'
  );
  IF m->>'role'='student' THEN
   INSERT INTO public.student_profiles(user_id) VALUES(NEW.id);

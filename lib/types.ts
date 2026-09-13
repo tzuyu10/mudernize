@@ -12,8 +12,10 @@ export interface AppUser {
   recommendation: DutyType | null
   role: Role
   first_name: string
+  middle_initial: string | null
   last_name: string
   year_level: YearLevel | null
+  year_section: string | null
   created_at: string
 }
 

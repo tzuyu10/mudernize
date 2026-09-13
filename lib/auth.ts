@@ -18,7 +18,7 @@ const getSessionContext=cache(async()=>{
  const supabase = await createClient()
  const { data: { user } } = await supabase.auth.getUser()
  if (!user) redirect('/login')
- const { data: profile } = await supabase.from('users').select('user_id,student_number,admin_number,role,first_name,last_name,year_level,batch,recommendation').eq('user_id', user.id).single()
+ const { data: profile } = await supabase.from('users').select('user_id,student_number,admin_number,role,first_name,middle_initial,last_name,year_level,year_section,batch,recommendation').eq('user_id', user.id).single()
  if (!profile) redirect('/login?error=Account+profile+is+not+configured')
  const {data:access}=await supabase.from('users').select('is_active').eq('user_id',user.id).maybeSingle()
  if(access?.is_active===false){await supabase.auth.signOut();redirect('/login?error=This+account+is+inactive.+Contact+your+Clinical+Head.')}

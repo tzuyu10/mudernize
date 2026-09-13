@@ -23,8 +23,8 @@ function Fields({schedule,batches}:{schedule:any;batches:string[]}){
 export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
  await requireUser('clinical_head')
  const [{data,error},{data:batchConfigs}]=await Promise.all([getAllSchedules(),getBatchConfigs()]),schedules=data||[],batches=batchConfigs.map(batch=>batch.name)
- return <div className="space-y-6">
-  <div className="admin-page-heading"><div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Duty Schedules</h1><p className="muted text-sm">Create and manage the dates available to students.</p></div><ScheduleCreateModal batches={batches}/></div>
+ return <div className="space-y-6 page-stack">
+  <div className="admin-page-heading page-heading"><div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Duty Schedules</h1><p className="muted text-sm">Create and manage the dates available to students.</p></div><ScheduleCreateModal batches={batches}/></div>
   {(searchParams.error||error)&&<p role="alert" className="notice">{searchParams.error||error?.message}</p>}
   {searchParams.message&&<p role="status" className="notice success-notice">{searchParams.message}</p>}
   <p className="muted text-sm">Dates and audiences are locked once a slot has registrations. Select a calendar entry to open its settings.</p>

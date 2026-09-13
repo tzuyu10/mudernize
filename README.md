@@ -1,5 +1,9 @@
 # MUDernize
 
+<p align="center">
+  <img src="public/logos/mudernize-logo.png" alt="MUDernize logo" width="128" />
+</p>
+
 MUDernize is a web-based make-up duty management system for nursing students and Clinical Heads. It centralizes student account management, duty registration, evidence submission, schedule assignment, request verification, announcements, notifications, and duty tallies.
 
 The system replaces manual forms and disconnected records with a role-based workflow. Students can submit and track their make-up duty requirements, while Clinical Heads can publish available schedules, review supporting documents, update request statuses, and monitor student progress.
@@ -35,7 +39,8 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 6. The request appears as **Pending** while waiting for Clinical Head review.
 7. The student receives a notification when the request is approved, denied, started, completed, or otherwise updated.
 8. Approved, ongoing, and completed duties appear in the My Schedule calendar.
-9. My Profile displays the student's information and category-based duty tally.
+9. On or after an approved schedule's date, the student can mark that duty as completed from the calendar.
+10. My Profile displays the student's information and category-based duty tally.
 
 ### Clinical Head workflow
 
@@ -61,6 +66,7 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 - Registration review and confirmation before submission
 - Status and denial notifications
 - Calendar-based personal schedule
+- Date-guarded student completion control for approved or ongoing duties
 - Profile and category-based duty tally
 - Light and dark modes
 - Responsive navigation for desktop, tablet, and mobile devices
@@ -68,7 +74,7 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 ## Clinical Head features
 
 - Clinical Head dashboard and analytics
-- Student account creation with automatic cohort validation
+- Student account creation with automatic cohort validation and an optional middle initial
 - Batch creation, archiving, activation, and guarded deletion
 - Student profile editing, access suspension, and temporary-password management
 - Password visibility control during account creation
@@ -90,6 +96,7 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 
 - Student IDs must use the `YYYY-NNNNNN` format.
 - The student ID year must match the selected batch.
+- Each student has a year-and-section record in `4NU-05` format; its leading year must match the selected batch's derived year level.
 - Students can select only published, open, future schedules intended for their batch and year level.
 - Past, closed, full, or unavailable schedules cannot be registered.
 - Duplicate registrations for the same schedule are rejected.
@@ -99,6 +106,7 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 - Schedule dates and audiences are locked after registrations exist.
 - Only empty schedules can be deleted.
 - Denied registrations release their reserved schedule capacity.
+- Students can complete only their own Approved or Ongoing duty on or after its scheduled date.
 
 ## Status flow
 
@@ -169,7 +177,7 @@ The system uses the following main database records:
 
 The production database must include the supplied constraints, indexes, triggers, storage configuration, and Row Level Security policies. These rules protect student data, validate registration transitions, reserve schedule capacity safely, and support concurrent users.
 
-For an existing database, apply `002_performance_concurrency.sql` through `005_batch_and_user_management.sql` in numeric order.
+For an existing database, apply `002_performance_concurrency.sql` through `007_optional_middle_initial.sql` in numeric order.
 
 ## Document requirements
 

@@ -15,5 +15,5 @@ export default async function Page({params,searchParams}:{params:{scheduleId:str
  if(s.status!=='open') redirect('/student/registration?error=This+duty+schedule+is+closed.')
  if(s.current_count>=s.max_capacity) redirect('/student/registration?error=This+duty+schedule+is+already+full.')
  if(existing) redirect('/student/registration?error=You+already+have+an+active+registration+for+this+schedule.')
- return <div className="max-w-xl"><p className="eyebrow">DUTY REGISTRATION</p><h1>Request a make-up duty</h1><p className="mb-6 muted">{s.date} · {s.time_slot}</p>{searchParams.error && <p className="notice" role="alert">{searchParams.error}</p>}<RegistrationForm id={params.scheduleId} scheduleDate={s.date}/></div>
+ return <div className="max-w-xl page-stack"><div className="page-heading"><p className="eyebrow">DUTY REGISTRATION</p><h1>Request a make-up duty</h1><p className="muted text-sm">{s.date} · {s.time_slot}</p></div>{searchParams.error && <p className="notice" role="alert">{searchParams.error}</p>}<RegistrationForm id={params.scheduleId} scheduleDate={s.date}/></div>
 }

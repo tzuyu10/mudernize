@@ -7,8 +7,8 @@ import {removeBatch,saveBatch,setBatchStatus} from './actions'
 export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
  await requireUser('clinical_head')
  const {data:batches,error,usingFallback}=await getBatchConfigs(true)
- return <div className="space-y-6">
-  <div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Batch Management</h1><p className="muted text-sm">Create cohorts, control new sign-ins, and safely retire batches.</p></div>
+ return <div className="space-y-6 page-stack">
+  <div className="page-heading"><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Batch Management</h1><p className="muted text-sm">Create cohorts, control new sign-ins, and safely retire batches.</p></div>
   {searchParams.error&&<p className="notice" role="alert">{searchParams.error}</p>}{searchParams.message&&<p className="notice success-notice" role="status">{searchParams.message}</p>}
   {usingFallback&&<p className="notice" role="alert">Batch management requires database/005_batch_and_user_management.sql. Default batches are shown as a preview. {error?.message}</p>}
   <ResetAfterSubmitForm action={saveBatch} className="dashboardCard p-6 space-y-4"><div><h2 className="font-semibold text-lg">Create a Batch</h2><p className="muted text-xs mt-1">The student year prefix controls which IDs can be assigned to this cohort.</p></div><div className="batch-create-grid"><label>Batch Name<input name="name" required minLength={2} maxLength={40} placeholder="e.g. Hiraya"/></label><label>Student ID Year<input name="student_year_prefix" required inputMode="numeric" pattern="[0-9]{4}" placeholder="2026"/></label><label>Year Level<select name="year_level" defaultValue="2nd"><option>2nd</option><option>3rd</option><option>4th</option></select></label><label>Theme Color<input name="theme_color" type="color" defaultValue="#054191" required/></label></div><ConfirmButton className="primary" message="Create this batch?">Create Batch</ConfirmButton></ResetAfterSubmitForm>

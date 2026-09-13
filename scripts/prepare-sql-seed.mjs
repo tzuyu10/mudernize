@@ -16,10 +16,10 @@ const db = createClient(url, key, { auth: { persistSession: false, autoRefreshTo
 const password = process.env.DEMO_PASSWORD || randomBytes(18).toString('base64url')
 if (password.length < 12 || password.length > 128) throw new Error('DEMO_PASSWORD must be 12–128 characters.')
 const accounts = [
-  { id: 'ADMIN-001', role: 'clinical_head', first_name: 'Mara', last_name: 'Reyes' },
-  { id: '2025-301107', role: 'student', first_name: 'Andrea', last_name: 'Santos', batch: 'Sanghaya', year_level: '2nd', recommendation: 'excused' },
-  { id: '2023-301108', role: 'student', first_name: 'Luis', last_name: 'Cruz', batch: 'Astraea', year_level: '4th', recommendation: 'unexcused' },
-  { id: '2024-301109', role: 'student', first_name: 'Sofia', last_name: 'Garcia', batch: 'Solaris', year_level: '3rd', recommendation: 'waived' },
+  { id: 'ADMIN-001', role: 'clinical_head', first_name: 'Mara', middle_initial: 'L', last_name: 'Reyes' },
+  { id: '2025-301107', role: 'student', first_name: 'Andrea', middle_initial: 'M', last_name: 'Santos', batch: 'Sanghaya', year_level: '2nd', year_section: '2NU-01', recommendation: 'excused' },
+  { id: '2023-301108', role: 'student', first_name: 'Luis', last_name: 'Cruz', batch: 'Astraea', year_level: '4th', year_section: '4NU-05', recommendation: 'unexcused' },
+  { id: '2024-301109', role: 'student', first_name: 'Sofia', middle_initial: 'R', last_name: 'Garcia', batch: 'Solaris', year_level: '3rd', year_section: '3NU-01', recommendation: 'waived' },
 ]
 function checked(result) {
   if (result.error) throw new Error(result.error.message)
@@ -34,7 +34,7 @@ for (const account of accounts) {
   if (profile) {
     const auth = checked(await db.auth.admin.getUserById(profile.user_id))
     if (auth.user.email !== email || profile.role !== account.role ||
-        (account.role === 'student' && (profile.batch !== account.batch || profile.year_level !== account.year_level))) {
+        (account.role === 'student' && (profile.batch !== account.batch || profile.year_level !== account.year_level || profile.year_section !== account.year_section))) {
       throw new Error('Existing ' + id + ' does not match the demo login/batch/year. Nothing on that account was overwritten.')
     }
     console.log('Reusing', id, '(existing password unchanged)')

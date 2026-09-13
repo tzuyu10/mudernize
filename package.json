@@ -11,6 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:predeploy": "node scripts/predeploy-check.mjs",
+    "test:predeploy:db": "node scripts/predeploy-check.mjs --with-db",
     "seed:preview": "node scripts/seed.mjs",
     "seed:demo": "node scripts/seed.mjs --apply",
     "db:check": "node scripts/check-adjustments.mjs"

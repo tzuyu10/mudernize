@@ -17,6 +17,7 @@ Use only a development Supabase project. Apply the schema/setup and sample impor
 13. Add a student with an ID like 2023-301110; verify login. Reuse an existing ID: reject without duplicate public profile.
 14. Inspect signed document links: they expire after five minutes. Reload reviews to issue a new link.
 15. Profile category filter changes registration counts and duty totals. Admin batch/search filters isolate the appropriate students.
+16. Create a student with a matching year-section such as `4NU-05`; confirm it appears in My Students, Verification, and My Profile. Confirm a mismatched value such as `3NU-05` for a fourth-year batch is rejected.
 
 No live integration results are claimed by this checklist.
 

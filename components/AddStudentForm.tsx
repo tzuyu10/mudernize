@@ -19,20 +19,26 @@ function EyeIcon({hidden}:{hidden:boolean}){
 export default function AddStudentForm({batches,resetKey}:Props){
  const formRef=useRef<HTMLFormElement>(null)
  const [showPassword,setShowPassword]=useState(false)
+ const [selectedBatch,setSelectedBatch]=useState(batches[0]?.name||'')
+ const batchRule=batches.find(batch=>batch.name===selectedBatch)||batches[0]
 
  useEffect(()=>{
   if(!resetKey)return
   formRef.current?.reset()
   setShowPassword(false)
- },[resetKey])
+  setSelectedBatch(batches[0]?.name||'')
+ },[resetKey,batches])
 
  return <details className="bg-white border rounded-lg p-6">
   <summary className="font-semibold cursor-pointer">＋ Add Student</summary>
   <form ref={formRef} action={addStudent} className="space-y-4 mt-5" autoComplete="off">
    <div className="grid grid-cols-2 gap-4 admin-add-student-grid">
     <label>Student Number<input name="student_number" placeholder="2025-301107" pattern="[0-9]{4}-[0-9]{6}" required/></label>
-    <label>Batch<select name="batch">{batches.map(batch=><option key={batch.name} value={batch.name}>{batch.name}</option>)}</select><small className="muted block mt-2">{batches.map(batch=>`${batch.student_year_prefix} ${batch.name}`).join(' · ')}</small></label>
+    <label>Batch<select name="batch" value={selectedBatch} onChange={event=>setSelectedBatch(event.target.value)}>{batches.map(batch=><option key={batch.name} value={batch.name}>{batch.name}</option>)}</select><small className="muted block mt-2">{batches.map(batch=>`${batch.student_year_prefix} ${batch.name}`).join(' · ')}</small></label>
+    <label>Year Level<input value={batchRule?.year_level||''} readOnly aria-readonly="true"/></label>
+    <label>Year &amp; Section<input name="year_section" placeholder={`${batchRule?.year_level?.slice(0,1)||'4'}NU-05`} pattern={`${batchRule?.year_level?.slice(0,1)||'[234]'}NU-[0-9]{2}`} maxLength={6} autoCapitalize="characters" title={`Use the format ${batchRule?.year_level?.slice(0,1)||'4'}NU-05`} required/><small className="muted block mt-2">Format: {batchRule?.year_level?.slice(0,1)||'4'}NU-05</small></label>
     <label>First Name<input name="first_name" required maxLength={80}/></label>
+    <label>Middle Initial <span className="muted">(Optional)</span><input name="middle_initial" maxLength={1} pattern="[A-Za-z]" autoCapitalize="characters" placeholder="M"/></label>
     <label>Last Name<input name="last_name" required maxLength={80}/></label>
    </div>
    <label>Initial Password

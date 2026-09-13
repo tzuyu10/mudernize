@@ -1,4 +1,4 @@
-.section{margin:34px 0}
+.section{margin:0}
 .header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:18px}
 .header h2{font-size:21px;font-weight:720;color:#1a2e49}
 .header>div>p:last-child{font-size:13px;color:#68798d;margin-top:6px;line-height:1.5}
@@ -117,3 +117,14 @@
 .today .dayHead span{background:#dbeafe;color:#063e87;font-weight:850}
 :global(html[data-theme="dark"]) .today .dayHead time,:global(html[data-theme="dark"]) .today.unavailable .dayHead time{background:#69a9f2;color:#071425!important}
 :global(html[data-theme="dark"]) .today .dayHead span{background:#173c68;color:#d8eaff}
+
+/* Student completion control stays inside the selected schedule entry. */
+.slotDetails{min-width:0;flex:1}
+.completionForm{margin-top:8px}
+.completeButton{width:100%;min-height:30px;padding:6px 8px;border:1px solid color-mix(in srgb,var(--theme) 55%,#64748b);border-radius:7px;background:var(--theme);color:var(--on);font-family:inherit;font-size:9px;font-weight:700;line-height:1.2;text-align:center}
+.completeButton:hover:not(:disabled){filter:brightness(.92)}
+.completeButton:focus-visible{outline:3px solid color-mix(in srgb,var(--theme) 36%,transparent);outline-offset:2px}
+.completionHint,.completionDone{margin-top:7px!important;padding-top:6px;border-top:1px solid currentColor;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;line-height:1.35;opacity:.78!important}
+.completionDone{font-weight:750;opacity:.9!important}
+:global(html[data-theme="dark"]) .completeButton{border-color:color-mix(in srgb,var(--theme) 45%,#dbeafe);box-shadow:inset 0 0 0 1px #ffffff17}
+@media(max-width:700px){.completeButton{min-height:34px;font-size:9px}.completionHint,.completionDone{font-size:8px!important}}

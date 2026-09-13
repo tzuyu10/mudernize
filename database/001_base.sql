@@ -8,8 +8,10 @@ CREATE TABLE public.users (
   student_number character varying UNIQUE,
   role character varying NOT NULL CHECK (role::text = ANY (ARRAY['student'::character varying, 'clinical_head'::character varying]::text[])),
   first_name character varying NOT NULL,
+  middle_initial character varying(1) CHECK (middle_initial IS NULL OR middle_initial::text ~ '^[A-Z]$'),
   last_name character varying NOT NULL,
   year_level character varying CHECK (year_level::text = ANY (ARRAY['2nd'::character varying, '3rd'::character varying, '4th'::character varying]::text[])),
+  year_section character varying(6) CHECK (year_section IS NULL OR year_section::text ~ '^[234]NU-[0-9]{2}$'),
   created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT users_pkey PRIMARY KEY (user_id),
   CONSTRAINT users_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)

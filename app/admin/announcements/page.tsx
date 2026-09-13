@@ -16,8 +16,8 @@ function Fields({announcement,batches}:{announcement?:any;batches:string[]}){
 export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
  await requireUser('clinical_head')
  const [{data,error},{data:batchConfigs}]=await Promise.all([getAllAnnouncements(),getBatchConfigs()]),batches=batchConfigs.map(batch=>batch.name)
- return <div className="space-y-6">
-  <div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Announcements</h1><p className="muted text-sm">Publish updates for every student or a specific batch.</p></div>
+ return <div className="space-y-6 page-stack">
+  <div className="page-heading"><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Announcements</h1><p className="muted text-sm">Publish updates for every student or a specific batch.</p></div>
   {(searchParams.error||error)&&<p role="alert" className="notice">{searchParams.error||error?.message}</p>}
   {searchParams.message&&<p role="status" className="notice success-notice">{searchParams.message}</p>}
   <ResetAfterSubmitForm action={postAnnouncement} className="dashboardCard p-6 space-y-4"><h2 className="font-semibold">New Announcement</h2><Fields batches={batches}/><ConfirmButton className="primary" message="Publish this announcement?">Publish Announcement</ConfirmButton></ResetAfterSubmitForm>

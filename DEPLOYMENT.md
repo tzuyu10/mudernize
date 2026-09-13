@@ -34,8 +34,7 @@ Run these commands from the project directory:
 ```powershell
 cd C:\Users\vonvo\mudernize\mudernize
 npm install
-npm run typecheck
-npm run build
+npm run test:predeploy
 ```
 
 Deployment should continue only after both validation commands pass.
@@ -54,6 +53,8 @@ If the incremental migrations have not been applied, open **Supabase Dashboard â
 2. `database/003_product_adjustments.sql`
 3. `database/004_automatic_tally_ratios.sql`
 4. `database/005_batch_and_user_management.sql`
+5. `database/006_student_duty_completion.sql`
+6. `database/007_optional_middle_initial.sql`
 
 Do not run `database/001_base.sql` over an existing database. More database guidance is available in `database/EXISTING_DATABASE.md`.
 
@@ -69,6 +70,12 @@ The local file must contain:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-private-service-role-key
+```
+
+After migration 007 has been applied, run the application, production-build, and live database checks together:
+
+```powershell
+npm run test:predeploy:db
 ```
 
 ### Verify Supabase security
@@ -95,6 +102,10 @@ npm run seed:demo
 `seed:demo` creates authentication accounts and database records. It requires the service-role key and prints the generated demo password. Save that password securely and never write it into public documentation.
 
 Do not seed demo accounts into a database that contains real client records.
+
+### Optional destructive reset
+
+`database/reset_to_single_admin.sql` removes all MUDernize data and every Auth account except `ADMIN-001`, revokes its existing sessions, sets its configured password, and restores the three default batches. The administrator must already exist and be confirmed in Supabase Authentication; the script aborts before deletion when that account is missing or the Admin ID points to another identity.
 
 ## Option A: Deploy on Netlify Free
 

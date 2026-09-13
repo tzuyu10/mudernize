@@ -23,6 +23,9 @@ Run these files once in the Supabase SQL Editor, in order:
 2. `003_product_adjustments.sql`
 3. `004_automatic_tally_ratios.sql`
 4. `005_batch_and_user_management.sql`
+5. `006_student_duty_completion.sql`
+6. `007_optional_middle_initial.sql`
+7. `008_year_section.sql`
 
 Afterward, run `npm run db:check`. Use `validate_constraints.sql` to validate deferred `mud_*` constraints after correcting older records that violate the new rules.
 
