@@ -71,8 +71,9 @@ Open **Supabase Dashboard → SQL Editor** and run each missing file once in num
 6. `database/007_optional_middle_initial.sql`
 7. `database/008_year_section.sql`
 8. `database/009_tally_balances.sql`
+9. `database/010_exact_tally_decrease.sql`
 
-Migration 008 adds the required `year_section` field using values such as `4NU-05`. Migration 009 adds signed tally adjustments, safe tally reductions, student balance checks, and transactional protection against concurrent registrations exceeding an assigned tally.
+Migration 008 adds the required `year_section` field using values such as `4NU-05`. Migration 009 adds signed tally adjustments, student balance checks, and transactional protection against concurrent registrations exceeding an assigned tally. Migration 010 allows exact-unit tally reductions without changing the 1:3 and 1:6 Unexcused addition rules.
 
 Do not run `database/001_base.sql` over an existing database. Follow `database/EXISTING_DATABASE.md` when upgrading an existing project.
 

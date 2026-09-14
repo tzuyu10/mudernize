@@ -27,6 +27,7 @@ Run these files once in the Supabase SQL Editor, in order:
 6. `007_optional_middle_initial.sql`
 7. `008_year_section.sql`
 8. `009_tally_balances.sql`
+9. `010_exact_tally_decrease.sql`
 
 Afterward, run `npm run db:check`. Use `validate_constraints.sql` to validate deferred `mud_*` constraints after correcting older records that violate the new rules.
 

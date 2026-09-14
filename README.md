@@ -186,7 +186,7 @@ The system uses the following main database records:
 
 The production database must include the supplied constraints, indexes, triggers, storage configuration, and Row Level Security policies. These rules protect student data, validate registration transitions, reserve schedule capacity safely, and support concurrent users.
 
-For an existing database, apply `002_performance_concurrency.sql` through `009_tally_balances.sql` in numeric order. Migration 008 adds year-and-section records. Migration 009 adds tally decreases and prevents registrations from exceeding assigned balances.
+For an existing database, apply `002_performance_concurrency.sql` through `010_exact_tally_decrease.sql` in numeric order. Migration 008 adds year-and-section records. Migration 009 adds tally decreases and prevents registrations from exceeding assigned balances. Migration 010 lets Clinical Heads remove exact unregistered duty units while retaining the configured addition ratios.
 
 ## Document requirements
 

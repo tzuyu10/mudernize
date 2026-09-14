@@ -34,7 +34,7 @@ export async function adjustStudentTally(form:FormData) {
  const missedCount=Number(form.get('missed_count'))
  const ratio=dutyType==='unexcused'?Number(form.get('ratio')):1
  const changeKind=String(form.get('change_kind')||'increase')
- const validRatio=dutyType==='unexcused'?[3,6].includes(ratio):ratio===1
+ const validRatio=changeKind==='decrease'?ratio===1:dutyType==='unexcused'?[3,6].includes(ratio):ratio===1
  if(!/^[0-9a-f-]{36}$/i.test(userId)||!['excused','unexcused','waived'].includes(dutyType)||!['increase','decrease'].includes(changeKind)||!Number.isInteger(missedCount)||missedCount<1||missedCount>180||!validRatio||missedCount*ratio>180) redirect('/admin/students?error=Invalid+tally+change')
  const {error}=await supabase.rpc('change_tally_requirement',{target_user:userId,missed_count:missedCount,duty_category:dutyType,duty_ratio:ratio,change_kind:changeKind})
  if(error) redirect('/admin/students?error='+encodeURIComponent(error.message))

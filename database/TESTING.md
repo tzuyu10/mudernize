@@ -18,7 +18,7 @@ Use only a development Supabase project. Apply the schema/setup and sample impor
 14. Inspect signed document links: they expire after five minutes. Reload reviews to issue a new link.
 15. Profile category filter changes registration counts and duty totals. Admin batch/search filters isolate the appropriate students.
 16. Create a student with a matching year-section such as `4NU-05`; confirm it appears in My Students, Verification, and My Profile. Confirm a mismatched value such as `3NU-05` for a fourth-year batch is rejected.
-17. Increase and decrease each duty category from My Students. Confirm the audit balance changes, a decrease cannot go below active registrations, and the student's registration page immediately shows the new available amount.
+17. Increase and decrease each duty category from My Students. Confirm Unexcused additions use 1:3 or 1:6, decreases remove exact duty units, the audit balance changes, a decrease cannot go below active registrations, and the student's registration page immediately shows the new available amount.
 18. From two sessions for the same student, submit registrations whose combined duty counts exceed the remaining category tally. Confirm only the request within the balance succeeds.
 
 No live integration results are claimed by this checklist.

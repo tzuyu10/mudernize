@@ -469,6 +469,11 @@
 
 /* Tally balance controls and student registration availability. */
 .admin :global(.tally-balance-summary){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px}
+.admin :global(.tally-popup-heading){display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+.admin :global(.tally-popup-heading .tally-form-title){flex:1;margin:0}
+.admin :global(.popup-close){display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;padding:0;border:1px solid #d3dce7;border-radius:50%;background:#eef3f8;color:#41566f;font-size:22px;line-height:1}
+.admin :global(.popup-close:hover){background:#e1e9f2;color:#173c68}
+:global(html[data-theme="dark"]) .admin :global(.popup-close){background:#1d2c40;border-color:#3b4c63;color:#d4deea}
 .admin :global(.tally-balance-summary>span){padding:9px 7px;border:1px solid #d8e2ed;border-radius:9px;background:#f5f8fb;text-align:center}
 .admin :global(.tally-balance-summary small),.admin :global(.tally-balance-summary strong){display:block}
 .admin :global(.tally-balance-summary small){font-size:8px;color:#697c92;text-transform:uppercase;letter-spacing:.5px}

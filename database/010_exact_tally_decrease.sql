@@ -1,23 +1,8 @@
--- Adds auditable tally decreases and prevents students from registering more
--- duties than the Clinical Head assigned to their category.
--- Run after 008_year_section.sql in the Supabase SQL Editor.
+-- Allows Clinical Heads to decrease any unregistered duty units exactly.
+-- Addition rules remain 1:1 for Excused/Waived and 1:3 or 1:6 for Unexcused.
+-- Run after 009_tally_balances.sql.
 
 BEGIN;
-
-ALTER TABLE public.tally_adjustments
- ADD COLUMN IF NOT EXISTS adjustment_kind text NOT NULL DEFAULT 'increase';
-
-DO $$ BEGIN
- ALTER TABLE public.tally_adjustments ADD CONSTRAINT mud_tally_adjustment_kind
-  CHECK (adjustment_kind IN ('increase','decrease'));
-EXCEPTION WHEN duplicate_object THEN NULL; END $$;
-
-ALTER TABLE public.tally_adjustments
- ADD COLUMN IF NOT EXISTS signed_total integer
- GENERATED ALWAYS AS (
-  CASE WHEN adjustment_kind='decrease' THEN -(missed_count*duty_ratio)
-       ELSE missed_count*duty_ratio END
- ) STORED;
 
 ALTER TABLE public.tally_adjustments DROP CONSTRAINT IF EXISTS mud_tally_ratio_by_type;
 ALTER TABLE public.tally_adjustments ADD CONSTRAINT mud_tally_ratio_by_type CHECK (
@@ -27,9 +12,6 @@ ALTER TABLE public.tally_adjustments ADD CONSTRAINT mud_tally_ratio_by_type CHEC
    (duty_type='unexcused' AND duty_ratio IN (3,6))
  ))
 );
-
-CREATE INDEX IF NOT EXISTS mud_tally_adjustments_student_category
- ON public.tally_adjustments(student_id,duty_type,created_at DESC);
 
 CREATE OR REPLACE FUNCTION public.change_tally_requirement(
  target_user uuid,
@@ -74,44 +56,12 @@ BEGIN
  RETURN updated_required;
 END $$;
 
-CREATE OR REPLACE FUNCTION public.apply_tally_adjustment(
- target_user uuid, missed_count integer, duty_category text, duty_ratio integer
-) RETURNS integer LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$
- SELECT public.change_tally_requirement(target_user,missed_count,duty_category,duty_ratio,'increase');
-$$;
-
-CREATE OR REPLACE FUNCTION public.enforce_registration_tally()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE required_total integer; allocated_total integer;
-BEGIN
- IF NEW.status='denied' THEN RETURN NEW; END IF;
- PERFORM pg_advisory_xact_lock(hashtextextended(NEW.student_id::text || ':' || NEW.duty_type,0));
- SELECT coalesce(sum(signed_total),0) INTO required_total
- FROM public.tally_adjustments WHERE student_id=NEW.student_id AND duty_type=NEW.duty_type;
- SELECT coalesce(sum(duty_count),0) INTO allocated_total
- FROM public.registrations
- WHERE student_id=NEW.student_id AND duty_type=NEW.duty_type AND status<>'denied'
-   AND registration_id IS DISTINCT FROM NEW.registration_id;
- IF allocated_total+NEW.duty_count>required_total THEN
-  RAISE EXCEPTION 'Only % % duties remain available to register',greatest(required_total-allocated_total,0),NEW.duty_type;
- END IF;
- RETURN NEW;
-END $$;
-
-DROP TRIGGER IF EXISTS mud_enforce_registration_tally ON public.registrations;
-CREATE TRIGGER mud_enforce_registration_tally
- BEFORE INSERT OR UPDATE OF student_id,duty_type,duty_count ON public.registrations
- FOR EACH ROW EXECUTE FUNCTION public.enforce_registration_tally();
-
 REVOKE ALL ON FUNCTION public.change_tally_requirement(uuid,integer,text,integer,text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.change_tally_requirement(uuid,integer,text,integer,text) TO authenticated;
-REVOKE ALL ON FUNCTION public.apply_tally_adjustment(uuid,integer,text,integer) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.apply_tally_adjustment(uuid,integer,text,integer) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.mud_tally_balance_version()
 RETURNS integer LANGUAGE sql IMMUTABLE AS $$ SELECT 2 $$;
 GRANT EXECUTE ON FUNCTION public.mud_tally_balance_version() TO authenticated,service_role;
 
 ANALYZE public.tally_adjustments;
-ANALYZE public.registrations;
 COMMIT;
