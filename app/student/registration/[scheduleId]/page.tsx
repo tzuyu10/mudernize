@@ -2,7 +2,8 @@ import RegistrationForm from '@/components/RegistrationForm'
 import { requireUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import {calculateTallyBalances} from '@/lib/tally'
-export default async function Page({params,searchParams}:{params:{scheduleId:string};searchParams:{error?:string}}) {
+export default async function Page({params:paramsPromise,searchParams:searchParamsPromise}:{params:Promise<{scheduleId:string}>;searchParams:Promise<{error?:string}>}) {
+ const [params,searchParams]=await Promise.all([paramsPromise,searchParamsPromise])
  const {supabase,user}=await requireUser('student')
  const scheduleId=Number(params.scheduleId)
  if(!Number.isInteger(scheduleId)) redirect('/student/registration?error=Invalid+schedule.')

@@ -4,7 +4,8 @@ import ConfirmButton from '@/components/ConfirmButton'
 import ResetAfterSubmitForm from '@/components/ResetAfterSubmitForm'
 import {removeBatch,saveBatch,setBatchStatus} from './actions'
 
-export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
+export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<{error?:string;message?:string}>}){
+ const searchParams=await searchParamsPromise
  await requireUser('clinical_head')
  const {data:batches,error,usingFallback}=await getBatchConfigs(true)
  return <div className="space-y-6 page-stack">

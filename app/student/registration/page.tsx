@@ -3,7 +3,8 @@ import DutyCalendar from '@/components/DutyCalendar'
 import {getStudentSchedules} from '@/lib/cached-data'
 import {displayLabel} from '@/lib/labels'
 import {calculateTallyBalances} from '@/lib/tally'
-export default async function Page({searchParams}:{searchParams:{message?:string;error?:string}}) {
+export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<{message?:string;error?:string}>}) {
+ const searchParams=await searchParamsPromise
  const {supabase,user,profile}=await requireUser('student')
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Manila'})
  const [{data:schedules,error},{data:registrations},{data:adjustments,error:tallyError}]=await Promise.all([

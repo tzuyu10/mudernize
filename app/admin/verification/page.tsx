@@ -7,7 +7,8 @@ import {displayName} from '@/lib/names'
 
 type SearchParams={error?:string;batch?:string;status?:string;q?:string}
 
-export default async function Page({searchParams}:{searchParams:SearchParams}) {
+export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<SearchParams>}) {
+ const searchParams=await searchParamsPromise
  const {supabase}=await requireUser('clinical_head')
  const {data:batchConfigs}=await getBatchConfigs(true),batches=batchConfigs.map(batch=>batch.name)
  const status=searchParams.status||'pending'

@@ -13,7 +13,8 @@ function Fields({announcement,batches}:{announcement?:any;batches:string[]}){
  </>
 }
 
-export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
+export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<{error?:string;message?:string}>}){
+ const searchParams=await searchParamsPromise
  await requireUser('clinical_head')
  const [{data,error},{data:batchConfigs}]=await Promise.all([getAllAnnouncements(),getBatchConfigs()]),batches=batchConfigs.map(batch=>batch.name)
  return <div className="space-y-6 page-stack">

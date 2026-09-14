@@ -134,6 +134,9 @@
 .admin :global(.primary:hover),.admin :global(.adminAction:hover),.admin :global(.adminHeroAction:hover),.admin :global(.adminIconButton:hover){background:linear-gradient(115deg,#f3df68 0%,#1470c7 32%,#073682 100%);filter:none;transform:translateY(-1px)}
 .admin :global(.dangerButton){display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:10px 16px;border:1px solid #a8293f;border-radius:8px;background:linear-gradient(135deg,#c33a51,#8f1f34);color:#fff;font-size:12px;font-weight:750;box-shadow:0 5px 14px #8f1f3426}
 .admin :global(.dangerButton:hover){background:linear-gradient(135deg,#d2475f,#9e233a);transform:translateY(-1px)}
+.admin :global(.dangerButton:disabled){cursor:not-allowed;opacity:.55;transform:none;box-shadow:none}
+.admin :global(.schedule-delete-note){margin-top:10px;color:#6b7789;font-size:10px;line-height:1.5}
+:global(html[data-theme="dark"]) .admin :global(.schedule-delete-note){color:#aab6c5}
 .admin :global(.adminSecondary){display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 15px;border:2px solid transparent;border-radius:8px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(115deg,#eedd55,#095baf,#062a78) border-box;color:#054191;font-weight:700}
 .admin :global(.verification-filters){display:grid;grid-template-columns:minmax(300px,1.6fr) minmax(150px,.7fr) minmax(150px,.7fr);align-items:end;gap:14px}
 .admin :global(.verification-search){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:8px}
@@ -395,8 +398,42 @@
 .admin :global(.student-tally-table .student-manage-trigger){max-width:100%;white-space:normal}
 .admin :global(.student-tally-table .tally-editor){min-width:0;max-width:100%}
 .admin :global(.student-tally-table .tally-editor>summary){max-width:100%;white-space:normal;text-align:center}
+.admin :global(.student-tally-table table){table-layout:fixed}
+.admin :global(.student-tally-table th:nth-child(1)){width:19%}
+.admin :global(.student-tally-table th:nth-child(2)){width:10%}
+.admin :global(.student-tally-table th:nth-child(3)){width:51%}
+.admin :global(.student-tally-table th:nth-child(4)){width:11%}
+.admin :global(.student-tally-table th:nth-child(5)){width:9%}
+.admin :global(.student-tally-table th){padding:15px 18px;color:#5f7086;letter-spacing:.7px}
+.admin :global(.student-tally-table td){padding:18px;vertical-align:top}
+.admin :global(.student-table-name),.admin :global(.student-table-number){display:block}
+.admin :global(.student-table-name){color:#14253c;font-size:14px;line-height:1.35}
+.admin :global(.student-table-number){margin-top:4px;color:#65778e;font-size:11px}
+.admin :global(.student-table-meta){display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:12px}
+.admin :global(.student-table-meta>span:not(.status-chip)){padding:4px 7px;border-radius:6px;background:#edf3f8;color:#425a75;font-size:9px;font-weight:700}
+.admin :global(.student-table-meta .status-chip){font-size:8px}
+.admin :global(.student-pending-count),.admin :global(.student-required-total){display:block;font-size:25px;line-height:1;color:#054191}
+.admin :global(.student-tally-table td>small){margin-top:7px;line-height:1.4}
+.admin :global(.student-duty-grid){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.admin :global(.student-duty-card){min-width:0;padding:12px;border:1px solid #d6e0eb;border-radius:11px;background:#f8fafc}
+.admin :global(.student-duty-card>header){display:flex;align-items:center;justify-content:space-between;gap:8px}
+.admin :global(.student-duty-card>header>span){color:#52667e;font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase}
+.admin :global(.student-duty-card .number-text){font-size:21px;line-height:1}
+.admin :global(.student-duty-stats){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:12px 0}
+.admin :global(.student-duty-stats>span){min-width:0}
+.admin :global(.student-duty-stats strong),.admin :global(.student-duty-stats small){display:block;text-align:center}
+.admin :global(.student-duty-stats strong){color:#203a58;font-size:12px}
+.admin :global(.student-duty-stats small){margin-top:2px;color:#77879a;font-size:7px;line-height:1.25;text-transform:uppercase}
+.admin :global(.student-duty-card .tally-editor>summary){display:flex;width:100%;justify-content:center;padding:8px 7px;font-size:9px;white-space:nowrap}
+.admin :global(.student-tally-table .student-manage-trigger){width:100%;min-width:76px;padding-inline:9px;white-space:nowrap}
+:global(html[data-theme="dark"]) .admin :global(.student-table-name){color:#f3f7fc}
+:global(html[data-theme="dark"]) .admin :global(.student-table-number){color:#a9b7c8}
+:global(html[data-theme="dark"]) .admin :global(.student-table-meta>span:not(.status-chip)){background:#1c2b3e;color:#c1d0e2}
+:global(html[data-theme="dark"]) .admin :global(.student-duty-card){background:#152234;border-color:#32445a}
+:global(html[data-theme="dark"]) .admin :global(.student-duty-card>header>span),:global(html[data-theme="dark"]) .admin :global(.student-duty-stats small){color:#a9b8ca}
+:global(html[data-theme="dark"]) .admin :global(.student-duty-stats strong){color:#e5edf7}
 
-@media(max-width:700px){
+@media(max-width:900px){
  .shell :global(.table-wrap){width:100%;overflow-x:auto}
  .shell :global(.table-wrap table){font-size:12px}
  .shell :global(.table-wrap th),.shell :global(.table-wrap td){padding:11px 9px;line-height:1.45}
@@ -418,6 +455,12 @@
  :global(html[data-theme="dark"]) .shell :global(.responsive-data-table tr){background:#111b2a;border-color:#34445a;box-shadow:none}
  :global(html[data-theme="dark"]) .shell :global(.responsive-data-table td){border-color:#29394d}
  :global(html[data-theme="dark"]) .shell :global(.responsive-data-table td::before){color:#aab9cb}
+}
+
+@media(max-width:560px){
+ .admin :global(.student-tally-table td[data-label="Duty balances"]){display:block}
+ .admin :global(.student-tally-table td[data-label="Duty balances"]::before){display:block;margin-bottom:10px}
+ .admin :global(.student-duty-grid){grid-template-columns:1fr}
 }
 
 @media(max-width:390px){

@@ -133,7 +133,7 @@ Pending → Approved → Ongoing → Completed
 
 | Layer | Technology | Purpose |
 | --- | --- | --- |
-| Front end | Next.js 14 App Router | Pages, layouts, navigation, and server-rendered views |
+| Front end | Next.js 15 App Router | Pages, layouts, navigation, and server-rendered views |
 | UI | React 18 and TypeScript | Interactive components and type-safe application code |
 | Styling | Tailwind CSS and CSS Modules | Responsive layout, themes, and component styling |
 | Authentication | Supabase Auth | Student and Clinical Head authentication |

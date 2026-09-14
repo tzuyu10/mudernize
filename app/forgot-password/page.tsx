@@ -4,7 +4,8 @@ import {requestPasswordReset} from './actions'
 import {getBatchConfigs} from '@/lib/batch-data'
 import styles from './forgot-password.module.css'
 
-export default async function Page({searchParams}:{searchParams:{message?:string}}) {
+export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<{message?:string}>}) {
+ const searchParams=await searchParamsPromise
  const {data:batches}=await getBatchConfigs()
 
  return <main className={styles.page}>

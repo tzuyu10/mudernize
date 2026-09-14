@@ -6,7 +6,8 @@ import {displayName} from '@/lib/names'
 import {calculateTallyBalances} from '@/lib/tally'
 
 const dutyTypes=['excused','waived','unexcused'] as const
-export default async function Page({searchParams}:{searchParams:{error?:string;message?:string}}){
+export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<{error?:string;message?:string}>}){
+ const searchParams=await searchParamsPromise
  const {supabase,user,profile}=await requireUser('student')
  const [{data:studentProfile,error},{data:registrations,error:registrationError},{data:adjustments,error:adjustmentError}]=await Promise.all([
   supabase.from('student_profiles').select('course_block,contact_number,address,clinical_area,manual_tally_count').eq('user_id',user.id).maybeSingle(),
