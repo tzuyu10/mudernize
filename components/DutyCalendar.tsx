@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react'
 import styles from './DutyCalendar.module.css'
 import modalStyles from './ScheduleCreateModal.module.css'
 import RegistrationForm from './RegistrationForm'
+import type {TallyBalances} from '@/lib/tally'
 
 type Schedule={schedule_id:number;date:string;time_slot:'AM'|'PM';max_capacity:number;current_count:number}
 type StatusIcon='available'|'registered'|'unavailable'|'full'
@@ -18,7 +19,7 @@ function StatusMark({name}:{name:StatusIcon}) {
  return <svg viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>
 }
 
-export default function DutyCalendar({schedules,registeredScheduleIds=[],registeredRegistrationIds={}}:{schedules:Schedule[];registeredScheduleIds?:number[];registeredRegistrationIds?:Record<number,number>}) {
+export default function DutyCalendar({schedules,registeredScheduleIds=[],registeredRegistrationIds={},tallyBalances}:{schedules:Schedule[];registeredScheduleIds?:number[];registeredRegistrationIds?:Record<number,number>;tallyBalances:TallyBalances}) {
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Manila'})
  const firstMonth=today.slice(0,7)
  const lastMonth=schedules[schedules.length-1]?.date.slice(0,7)||firstMonth
@@ -31,7 +32,8 @@ export default function DutyCalendar({schedules,registeredScheduleIds=[],registe
  const days=new Date(year,monthNumber,0).getDate()
  const monthLabel=new Intl.DateTimeFormat('en-PH',{month:'long',year:'numeric'}).format(new Date(year,monthNumber-1,1))
  const monthSchedules=schedules.filter(schedule=>schedule.date.startsWith(month))
- const availableCount=monthSchedules.filter(schedule=>schedule.date>=today&&schedule.current_count<schedule.max_capacity&&!registered.has(schedule.schedule_id)).length
+ const hasAvailableTally=Object.values(tallyBalances).some(balance=>balance.remaining>0)
+ const availableCount=hasAvailableTally?monthSchedules.filter(schedule=>schedule.date>=today&&schedule.current_count<schedule.max_capacity&&!registered.has(schedule.schedule_id)).length:0
  const registeredCount=monthSchedules.filter(schedule=>registered.has(schedule.schedule_id)).length
  const fullCount=monthSchedules.filter(schedule=>schedule.current_count>=schedule.max_capacity&&!registered.has(schedule.schedule_id)).length
 
@@ -63,7 +65,7 @@ export default function DutyCalendar({schedules,registeredScheduleIds=[],registe
      const date=`${month}-${String(day).padStart(2,'0')}`
      const daySchedules=monthSchedules.filter(schedule=>schedule.date===date)
      const hasRegistered=daySchedules.some(schedule=>registered.has(schedule.schedule_id))
-     const unavailable=date<today||daySchedules.length===0||daySchedules.every(schedule=>registered.has(schedule.schedule_id)||schedule.current_count>=schedule.max_capacity)
+     const unavailable=date<today||daySchedules.length===0||(!hasAvailableTally&&!hasRegistered)||daySchedules.every(schedule=>registered.has(schedule.schedule_id)||schedule.current_count>=schedule.max_capacity)
      const isToday=date===today
      const dateLabel=new Intl.DateTimeFormat('en-PH',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'Asia/Manila'}).format(new Date(`${date}T00:00:00+08:00`))
      return <article key={date} className={`${styles.day} ${unavailable?styles.unavailable:styles.available} ${isToday?styles.today:''}`} aria-label={`${dateLabel}${isToday?', today':''}`} aria-disabled={unavailable&&!hasRegistered}>
@@ -73,6 +75,8 @@ export default function DutyCalendar({schedules,registeredScheduleIds=[],registe
         ? <a className={styles.registered} key={schedule.schedule_id} href={`#registration-${registeredRegistrationIds[schedule.schedule_id]??schedule.schedule_id}`} aria-label={`${schedule.time_slot}, registered. View your request`}><StatusMark name="registered"/><span><strong>{schedule.time_slot} · Registered</strong><small>View request</small></span><b aria-hidden="true">→</b></a>
         : date<today
          ? null
+         : !hasAvailableTally
+         ? <span className={styles.full} key={schedule.schedule_id}><StatusMark name="unavailable"/><span><strong>{schedule.time_slot} · No duty balance</strong><small>Ask your Clinical Head to update your tally</small></span></span>
          : schedule.current_count>=schedule.max_capacity
          ? <span className={styles.full} key={schedule.schedule_id}><StatusMark name="full"/><span><strong>{schedule.time_slot} · Full</strong><small>No slots remaining</small></span></span>
          : <button type="button" className={styles.slotLink} key={schedule.schedule_id} onClick={()=>openRegistration(schedule)} aria-label={`Register for ${dateLabel}, ${schedule.time_slot}. ${schedule.max_capacity-schedule.current_count} slots left`}><StatusMark name="available"/><span><strong>{schedule.time_slot} · Available</strong><small>{schedule.max_capacity-schedule.current_count} slots left</small></span><b aria-hidden="true">→</b></button>)}
@@ -82,7 +86,7 @@ export default function DutyCalendar({schedules,registeredScheduleIds=[],registe
     })}
    </div>
   </div>
-  {availableCount===0&&<p className={styles.empty}><StatusMark name="unavailable"/><span><strong>No selectable schedules in {monthLabel}.</strong><small>A Clinical Head must publish an open schedule with available slots for your batch and year.</small></span></p>}
-  <dialog ref={dialog} className={modalStyles.dialog} aria-labelledby="create-registration-title" onClose={()=>setSelected(null)} onClick={event=>{if(event.target===event.currentTarget)dialog.current?.close()}}><div className={modalStyles.panel}><div className={modalStyles.heading}><div><p className="eyebrow">DUTY REGISTRATION</p><h2 id="create-registration-title">Create a registration</h2><p>{selected?`${selected.date} · ${selected.time_slot}`:'Select an available schedule.'}</p></div><button type="button" className={modalStyles.close} onClick={()=>dialog.current?.close()} aria-label="Close registration dialog">×</button></div>{selected&&<div className={modalStyles.form}><RegistrationForm id={String(selected.schedule_id)} scheduleDate={selected.date} embedded/></div>}</div></dialog>
+  {availableCount===0&&<p className={styles.empty}><StatusMark name="unavailable"/><span><strong>No selectable schedules in {monthLabel}.</strong><small>{hasAvailableTally?'A Clinical Head must publish an open schedule with available slots for your batch and year.':'Your Clinical Head must add an available duty tally before you can register.'}</small></span></p>}
+  <dialog ref={dialog} className={modalStyles.dialog} aria-labelledby="create-registration-title" onClose={()=>setSelected(null)} onClick={event=>{if(event.target===event.currentTarget)dialog.current?.close()}}><div className={modalStyles.panel}><div className={modalStyles.heading}><div><p className="eyebrow">DUTY REGISTRATION</p><h2 id="create-registration-title">Create a registration</h2><p>{selected?`${selected.date} · ${selected.time_slot}`:'Select an available schedule.'}</p></div><button type="button" className={modalStyles.close} onClick={()=>dialog.current?.close()} aria-label="Close registration dialog">×</button></div>{selected&&<div className={modalStyles.form}><RegistrationForm id={String(selected.schedule_id)} scheduleDate={selected.date} tallyBalances={tallyBalances} embedded/></div>}</div></dialog>
  </section>
 }

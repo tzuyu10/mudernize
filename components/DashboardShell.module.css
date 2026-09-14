@@ -402,3 +402,31 @@
  .shell :global(.table-wrap th),.shell :global(.table-wrap td){padding:11px 9px;line-height:1.45}
  .admin :global(.student-tally-table .number-text){font-size:17px}
 }
+
+/* Tally balance controls and student registration availability. */
+.admin :global(.tally-balance-summary){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:12px}
+.admin :global(.tally-balance-summary>span){padding:9px 7px;border:1px solid #d8e2ed;border-radius:9px;background:#f5f8fb;text-align:center}
+.admin :global(.tally-balance-summary small),.admin :global(.tally-balance-summary strong){display:block}
+.admin :global(.tally-balance-summary small){font-size:8px;color:#697c92;text-transform:uppercase;letter-spacing:.5px}
+.admin :global(.tally-balance-summary strong){margin-top:3px;font-size:16px;color:#054191}
+.admin :global(.tally-change-toggle){display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;padding:4px;border-radius:10px;background:#eaf0f6}
+.admin :global(.tally-change-toggle button){min-height:36px;border:0;border-radius:7px;background:transparent;color:#53677e;font-size:11px;font-weight:750}
+.admin :global(.tally-change-toggle button.active){background:#054191;color:#fff;box-shadow:0 3px 10px #05419133}
+.admin :global(.tally-change-toggle button:disabled){opacity:.4;cursor:not-allowed}
+.shell :global(.registration-balance-grid){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.shell :global(.registration-balance-grid article){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:3px 12px}
+.shell :global(.registration-balance-grid article>span){font-size:12px;font-weight:750}
+.shell :global(.registration-balance-grid article>strong){grid-row:1/3;grid-column:2;font-size:26px}
+.shell :global(.registration-balance-grid article>small){font-size:9px}
+.shell :global(.registration-tally-note){display:flex;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid #c8d9eb;border-radius:10px;background:#eff6fd;color:#244e79;font-size:11px}
+.shell :global(.registration-tally-note span){text-align:right}
+:global(html[data-theme="dark"]) .admin :global(.tally-balance-summary>span){background:#182638;border-color:#35475e}
+:global(html[data-theme="dark"]) .admin :global(.tally-balance-summary small){color:#aebdce}
+:global(html[data-theme="dark"]) .admin :global(.tally-balance-summary strong){color:#9bc8ff}
+:global(html[data-theme="dark"]) .admin :global(.tally-change-toggle){background:#182638}
+:global(html[data-theme="dark"]) .shell :global(.registration-tally-note){background:#14283d;border-color:#345473;color:#cce4ff}
+@media(max-width:640px){
+ .shell :global(.registration-balance-grid){grid-template-columns:1fr}
+ .shell :global(.registration-tally-note){align-items:flex-start;flex-direction:column}
+ .shell :global(.registration-tally-note span){text-align:left}
+}

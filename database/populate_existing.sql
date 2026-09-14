@@ -102,6 +102,10 @@ BEGIN
    VALUES(slot_id,demo_date+7+sample.day_offset,'AM',10,0,'all',sample.batch,'DEMO SQL - ' || sample.batch,'open',admin_id);
   END IF;
   IF NOT EXISTS(SELECT 1 FROM public.registrations WHERE registration_id=registration_id_to_use) THEN
+   IF NOT EXISTS(SELECT 1 FROM public.tally_adjustments WHERE student_id=student.user_id AND duty_type=sample.duty_type) THEN
+    INSERT INTO public.tally_adjustments(student_id,added_by,duty_type,missed_count,duty_ratio,adjustment_kind)
+    VALUES(student.user_id,admin_id,sample.duty_type,1,CASE WHEN sample.duty_type='unexcused' THEN 3 ELSE 1 END,'increase');
+   END IF;
    INSERT INTO public.registrations(
     registration_id,student_id,schedule_id,duty_type,absence_date,duty_count,
     receipt_number,receipt_url,medcert_path,excuse_letter_path,status

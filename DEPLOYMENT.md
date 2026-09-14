@@ -1,53 +1,67 @@
 # MUDernize Deployment Guide
 
-This guide explains how to deploy MUDernize for a client trial or production use. MUDernize is a dynamic Next.js application that uses Supabase for authentication, PostgreSQL data, and private document storage.
+This guide covers preparation, deployment, acceptance testing, client handoff, and rollback for MUDernize. The application requires a Node.js host because it uses Next.js server rendering, Middleware, Server Actions, authentication cookies, and protected server-side Supabase operations.
 
 ## Deployment options
 
-| Option | Application host | Backend | Cost | Best use | Main limitation |
-| --- | --- | --- | --- | --- | --- |
-| **Recommended free option** | Netlify Free | Supabase Free | $0 | A small, active one-month client pilot | Monthly usage credits and no Supabase backups |
-| **Free fallback** | Render Free Web Service | Supabase Free | $0 | Testing when Netlify is unavailable | Sleeps after 15 minutes and may take about one minute to wake |
-| **Recommended production option** | Vercel Pro | Supabase Pro | Starts around US$45/month | Continued institutional use | Paid subscription |
+| Option | Application host | Backend | Recommended use | Main limitation |
+| --- | --- | --- | --- | --- |
+| **One-month pilot** | Netlify Free | Supabase Free | Recommended no-cost client trial | Both services have usage limits; Supabase may pause a low-activity free project |
+| **Free fallback** | Render Free Web Service | Supabase Free | Testing when Netlify is unavailable | Render sleeps after 15 minutes without traffic and can take about one minute to wake |
+| **Ongoing institutional use** | Vercel Pro or paid Netlify | Supabase Pro | Continued production operation | Paid subscriptions |
 
-GitHub Pages is not suitable because the application uses server-rendered routes, middleware, Server Actions, authentication cookies, and protected server-side operations.
+GitHub Pages is unsupported because it can host only static output and cannot run the application's server features.
 
-## Information to prepare
+Netlify currently supports the Next.js App Router, server-side rendering, Middleware, and Server Actions through its automatically installed OpenNext adapter. Do not pin the adapter or configure the `.next` folder as a manual static publish directory.
 
-Before deploying, obtain:
+## Information required from the client
 
-- Access to the GitHub repository that contains MUDernize.
-- Access to the Supabase project already used by the application.
-- The Supabase project URL.
-- The public Supabase anonymous key.
-- The private Supabase service-role key.
-- Access to the institution's domain, if a custom domain will be used.
-- The final Clinical Head account list.
-- A secure method for giving initial passwords to account owners.
+- Access to the GitHub repository and chosen hosting provider
+- Access to the production Supabase project
+- Supabase project URL and public anonymous key
+- Supabase service-role key for server-only administration
+- Final production domain, if applicable
+- Initial Clinical Head account information
+- A private method for delivering initial and temporary passwords
+- Approved privacy, backup, document-retention, and account-removal policies
 
-Never place the service-role key in GitHub, screenshots, client-side code, or variables beginning with `NEXT_PUBLIC_`.
+Never commit `.env.local` or expose `SUPABASE_SERVICE_ROLE_KEY` in GitHub, screenshots, browser code, or a variable whose name starts with `NEXT_PUBLIC_`.
 
-## 1. Prepare the application
+## Phase 1: Prepare the release
 
-Run these commands from the project directory:
+1. Open PowerShell in the authoritative project directory:
 
-```powershell
-cd C:\Users\vonvo\mudernize\mudernize
-npm install
-npm run test:predeploy
-```
+   ```powershell
+   cd C:\Users\vonvo\mudernize\mudernize
+   ```
 
-Deployment should continue only after both validation commands pass.
+2. Install the exact dependency versions recorded in `package-lock.json`:
 
-Confirm that the current changes are committed and pushed to GitHub. The hosting provider deploys the GitHub version, not uncommitted files that exist only on the development computer.
+   ```powershell
+   npm ci
+   ```
 
-## 2. Prepare Supabase
+3. Run TypeScript validation and a production build:
 
-### Use the existing Supabase project
+   ```powershell
+   npm run test:predeploy
+   ```
 
-The current MUDernize deployment path assumes that the original tables, authentication provisioning, private Storage bucket, helper functions, triggers, and Row Level Security policies already exist.
+4. Resolve every error before deployment. Warnings should be reviewed and documented if they cannot be removed.
 
-If the incremental migrations have not been applied, open **Supabase Dashboard → SQL Editor** and run these files once in order:
+5. Commit the tested files and push them to the production branch. A connected host deploys the repository commit, not uncommitted files on the development computer.
+
+## Phase 2: Prepare Supabase
+
+### 2.1 Back up the existing project
+
+Export the current schema and data before applying a migration to a database containing client records. Store the export in an encrypted location controlled by the client. Supabase Free does not provide downloadable managed backups, so the client needs a manual backup procedure during a pilot.
+
+### 2.2 Apply the database migrations
+
+The normal upgrade path assumes that the original MUDernize tables, Auth configuration, private Storage bucket, helper functions, triggers, and Row Level Security policies already exist.
+
+Open **Supabase Dashboard → SQL Editor** and run each missing file once in numeric order:
 
 1. `database/002_performance_concurrency.sql`
 2. `database/003_product_adjustments.sql`
@@ -55,16 +69,16 @@ If the incremental migrations have not been applied, open **Supabase Dashboard �
 4. `database/005_batch_and_user_management.sql`
 5. `database/006_student_duty_completion.sql`
 6. `database/007_optional_middle_initial.sql`
+7. `database/008_year_section.sql`
+8. `database/009_tally_balances.sql`
 
-Do not run `database/001_base.sql` over an existing database. More database guidance is available in `database/EXISTING_DATABASE.md`.
+Migration 008 adds the required `year_section` field using values such as `4NU-05`. Migration 009 adds signed tally adjustments, safe tally reductions, student balance checks, and transactional protection against concurrent registrations exceeding an assigned tally.
 
-After applying the migrations, configure `.env.local` on the development computer and run:
+Do not run `database/001_base.sql` over an existing database. Follow `database/EXISTING_DATABASE.md` when upgrading an existing project.
 
-```powershell
-npm run db:check
-```
+### 2.3 Configure local release validation
 
-The local file must contain:
+Create `.env.local` from `.env.local.example` and enter the production project's values:
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -72,271 +86,183 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-private-service-role-key
 ```
 
-After migration 007 has been applied, run the application, production-build, and live database checks together:
+Run the complete application and live-schema check:
 
 ```powershell
 npm run test:predeploy:db
 ```
 
-### Verify Supabase security
+Do not deploy until this command confirms that the connected database contains all required adjustments.
 
-Before allowing client access:
+### 2.4 Verify authentication, storage, and security
 
-1. Open **Authentication → Providers** and disable public account signup.
-2. Confirm that Row Level Security is enabled on every application table.
-3. Confirm that the `duty-documents` bucket is private.
-4. Confirm that students can read only their own profile, registrations, notifications, schedules, and documents.
-5. Confirm that only Clinical Heads can create accounts or perform administrative actions.
-6. Review warnings in **Database → Security Advisor**.
-7. Remove unused development accounts and real documents from any test project.
+1. In **Authentication → Providers**, disable public user signup. Clinical Heads create students through the application.
+2. In **Authentication → URL Configuration**, set the production **Site URL** after the host supplies it and add the exact production URL to **Redirect URLs**.
+3. Confirm that Row Level Security is enabled on every application table.
+4. Confirm that `duty-documents` is a private Storage bucket.
+5. Confirm that students can read only their own profile, registrations, notifications, and evidence.
+6. Confirm that only authenticated Clinical Heads can create accounts or change administrative data.
+7. Review **Database → Security Advisor** and resolve applicable warnings.
+8. Configure the Storage file-size limit consistently with MUDernize's 5 MB application limit.
+9. Remove unused demo accounts and test documents before client access.
 
-### Optional demo data
+### Optional data operations
 
-Use demo data only in a development or demonstration database:
+Use demo data only in a disposable development project:
 
 ```powershell
 npm run seed:preview
 npm run seed:demo
 ```
 
-`seed:demo` creates authentication accounts and database records. It requires the service-role key and prints the generated demo password. Save that password securely and never write it into public documentation.
+`database/reset_to_single_admin.sql` is destructive. Use it only when the client explicitly wants all student and operational data removed while retaining `ADMIN-001` and restoring the three default batches.
 
-Do not seed demo accounts into a database that contains real client records.
+## Phase 3A: Deploy on Netlify Free
 
-### Optional destructive reset
+Netlify Free is the preferred no-cost option for a small one-month pilot. The free plan currently provides a monthly credit allowance, so monitor usage and avoid unnecessary production rebuilds.
 
-`database/reset_to_single_admin.sql` removes all MUDernize data and every Auth account except `ADMIN-001`, revokes its existing sessions, sets its configured password, and restores the three default batches. The administrator must already exist and be confirmed in Supabase Authentication; the script aborts before deletion when that account is missing or the Admin ID points to another identity.
+1. Sign in to Netlify and select **Add new project → Import an existing project**.
+2. Connect GitHub, choose the MUDernize repository, and select the production branch.
+3. Let Netlify detect Next.js automatically.
+4. Verify the build configuration:
 
-## Option A: Deploy on Netlify Free
+   | Setting | Value |
+   | --- | --- |
+   | Base directory | Empty when `package.json` is at the repository root |
+   | Build command | `npm run build` |
+   | Node.js | A supported Node.js 20 or 22 release |
 
-Netlify Free is the recommended no-cost option for a small one-month pilot.
+5. Do not set `.next` as a manual static publish directory and do not pin `@netlify/plugin-nextjs`; Netlify configures the current adapter automatically.
+6. Add these production environment variables:
 
-### A1. Import the repository
+   ```text
+   NEXT_PUBLIC_SUPABASE_URL
+   NEXT_PUBLIC_SUPABASE_ANON_KEY
+   SUPABASE_SERVICE_ROLE_KEY
+   ```
 
-1. Sign in to Netlify.
-2. Select **Add new project → Import an existing project**.
-3. Choose GitHub and authorize access to the MUDernize repository.
-4. Select the repository.
-5. Select the `main` branch for production deployment.
+7. Optionally add `NETLIFY_NEXT_SKEW_PROTECTION=true` to reduce failures when a browser has assets from an older deployment.
+8. Deploy and open the generated `https://project-name.netlify.app` URL.
+9. If the new project is private by default, publish it for public client access in Netlify's project settings.
+10. Set the final HTTPS URL as the Supabase Auth Site URL and add it to Redirect URLs.
+11. If adding a custom domain, wait for HTTPS to become active, then add that exact address to Supabase as well.
 
-### A2. Configure the build
+## Phase 3B: Deploy on Render Free
 
-Netlify normally detects Next.js automatically. Verify these settings:
+Render Free is a fallback for testing and short pilots. A free service spins down after 15 minutes without requests, and its local filesystem is temporary. All durable records and uploads must remain in Supabase.
 
-| Setting | Value |
-| --- | --- |
-| Base directory | Leave empty when `package.json` is at the repository root |
-| Build command | `npm run build` |
-| Publish directory | `.next` |
-| Node.js version | `20` |
+1. In Render, select **New → Web Service** and connect the GitHub repository.
+2. Choose the production branch and the Free instance type.
+3. Configure:
 
-Add `NODE_VERSION` with the value `20` as an environment variable if the Netlify build does not use Node.js 20 automatically.
+   | Setting | Value |
+   | --- | --- |
+   | Runtime | Node |
+   | Build command | `npm ci && npm run build` |
+   | Start command | `npm run start` |
+   | Health check path | `/login` |
+   | Node.js | 20 or 22 |
 
-### A3. Add environment variables
+4. Add the three Supabase environment variables listed above.
+5. Deploy and open the generated `https://project-name.onrender.com` URL.
+6. Set that URL as the Supabase Auth Site URL and add it to Redirect URLs.
+7. Test again after at least 15 minutes of inactivity so the client understands the cold-start delay.
 
-Open **Project configuration → Environment variables** and add:
+## Phase 3C: Deploy for ongoing institutional use
 
-```text
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-```
+For continued client operation, use Vercel Pro or a paid Netlify plan with Supabase Pro. Vercel deployment steps are:
 
-Copy their values from the Supabase project or the local `.env.local` file. Set them for the production context. Never paste their actual values into source files.
+1. Create or select a Vercel Pro team.
+2. Import the GitHub repository and keep the detected Next.js preset.
+3. Select a supported Node.js 20 or 22 release.
+4. Add the three Supabase environment variables for Production. Add them to Preview only if previews should access a separate non-production Supabase project.
+5. Deploy, then configure the final address in Supabase Auth Site URL and Redirect URLs.
+6. Connect the custom domain and repeat the Supabase URL configuration for its HTTPS address.
 
-### A4. Deploy
+Supabase Pro is recommended for ongoing operation to avoid inactivity pauses and gain managed backup capabilities.
 
-1. Select **Deploy project**.
-2. Wait for the build to complete.
-3. Open the generated `https://project-name.netlify.app` address.
-4. If the build fails, open the deploy log and verify Node.js 20, the build command, and all environment variables.
+## Phase 4: Acceptance-test the deployed system
 
-Future commits pushed to `main` will trigger new production deployments.
+Use test identities and non-sensitive placeholder files. Remove them when acceptance testing is complete.
 
-### A5. Configure Supabase URLs
+### Authentication and access
 
-After Netlify provides the final address:
-
-1. Open **Supabase Dashboard → Authentication → URL Configuration**.
-2. Set **Site URL** to the Netlify production address.
-3. Add the Netlify production address to **Redirect URLs**.
-4. Add the custom domain as another allowed URL if one is connected later.
-5. Do not use `localhost` as the production Site URL.
-
-### A6. Optional custom domain
-
-1. Open **Netlify → Domain management**.
-2. Select **Add a domain**.
-3. Follow Netlify's DNS instructions at the domain registrar.
-4. Wait for the TLS certificate to become active.
-5. Add the custom HTTPS address to the Supabase Site URL and Redirect URLs.
-
-### A7. Monitor the free tier
-
-Netlify Free currently uses monthly credits for production deployments, bandwidth, requests, and serverless compute. Avoid unnecessary production deployments and check **Usage & billing** during the trial.
-
-Supabase Free currently includes 500 MB of database storage, 1 GB of file storage, and 5 GB of egress. Uploaded receipts, medical certificates, and excuse letters count toward Storage and egress. A low-activity free project may be paused after seven days.
-
-## Option B: Deploy on Render Free
-
-Use Render Free if Netlify cannot build or run the application. The first visitor after 15 minutes of inactivity may wait about one minute while the service starts.
-
-### B1. Create the web service
-
-1. Sign in to Render.
-2. Select **New → Web Service**.
-3. Connect GitHub and select the MUDernize repository.
-4. Choose the `main` branch.
-5. Select the **Free** instance type.
-
-### B2. Configure the service
-
-| Setting | Value |
-| --- | --- |
-| Runtime | Node |
-| Build command | `npm install && npm run build` |
-| Start command | `npm run start` |
-| Health check path | `/login` |
-| Node version | `20` or newer |
-
-Add these environment variables under the service's **Environment** settings:
-
-```text
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-NODE_VERSION=20
-```
-
-### B3. Deploy and configure URLs
-
-1. Select **Create Web Service**.
-2. Wait for the build and start checks to pass.
-3. Open the generated `https://project-name.onrender.com` address.
-4. Set that address as the Supabase Authentication Site URL.
-5. Add it to the Supabase Redirect URLs.
-
-The Render filesystem is temporary. All persistent application data and uploaded documents must remain in Supabase.
-
-## Option C: Deploy on Vercel Pro
-
-Use this option if the pilot becomes an ongoing client service. Vercel Hobby is intended for personal, non-commercial work, so use Pro for institutional deployment.
-
-### C1. Import and configure
-
-1. Sign in to Vercel and create or select a Pro team.
-2. Select **Add New → Project**.
-3. Import the MUDernize GitHub repository.
-4. Keep the automatically detected **Next.js** framework preset.
-5. Keep `npm run build` as the build command.
-6. Set Node.js to version 20.
-
-### C2. Add environment variables
-
-Add the following variables for Production and Preview as appropriate:
-
-```text
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-SUPABASE_SERVICE_ROLE_KEY
-```
-
-Deploy the project, then configure the resulting Vercel address in the Supabase Authentication Site URL and Redirect URLs.
-
-For continuing production use, upgrade Supabase to Pro as well so the database does not pause and receives managed backups.
-
-## 3. Test the deployed system
-
-Use test accounts and non-sensitive placeholder documents for this checklist.
-
-### Authentication
-
-- Sign in as one student from each batch.
-- Confirm that selecting the wrong batch rejects the login.
-- Sign in as a Clinical Head.
-- Submit a password-reset request and process it from the Clinical Head account.
+- Sign in as a student from Sanghaya, Solaris, and Astraea.
+- Confirm that choosing the wrong batch rejects a student login.
+- Sign in as a Clinical Head and verify all admin routes.
+- Submit and process a password-recovery request.
 - Confirm that a suspended student cannot sign in.
+- Confirm that unauthenticated requests to `/student` and `/admin` return to login.
 
-### Student workflow
+### Student and tally workflow
 
-- Open the dashboard and verify announcements and counts.
-- Open Duty Registration and select an available future schedule.
-- Submit Excused and Unexcused requests with a receipt.
-- Submit a Waived request with a medical certificate and excuse letter.
-- Confirm that unavailable, full, closed, and past schedules cannot be selected.
-- Confirm that notifications appear when a request status changes.
-- Check My Schedule and My Profile on desktop and mobile.
+- Create a temporary student with an optional middle initial and a valid year-and-section value such as `4NU-05`; confirm that the creation form clears.
+- Add Excused, Waived, and Unexcused tally requirements from the Clinical Head account.
+- Increase and decrease a tally; confirm that its audit history and the student's Required, Registered, Completed, and Available values update.
+- Confirm that a tally cannot be reduced below duties already registered.
+- Confirm that Duty Registration shows the remaining balance and blocks requests that exceed it.
+- Open two student sessions and submit against the same remaining balance; confirm that the database accepts only a valid combined quantity.
 
-### Clinical Head workflow
+### Schedule and registration workflow
 
-- Create a temporary test student, then verify that the form clears.
-- Create, edit, close, and delete an empty schedule.
-- Review, approve, deny, start, and complete test registrations.
-- Confirm that denial requires a reason.
-- Create, edit, and delete a test announcement.
-- Add and manage batches.
-- Add tally counts and confirm that they appear on the student's profile.
+- Create, edit, close, and delete an empty schedule from the calendar popup.
+- Confirm that registered schedules cannot have protected fields changed or be deleted as empty.
+- Submit Excused and Unexcused registrations with a receipt and receipt number.
+- Submit a Waived registration with a medical certificate and excuse letter.
+- Confirm that past, closed, full, unavailable, and wrong-audience schedules cannot be selected.
+- Approve, start, complete, and deny test requests; confirm that denial requires a reason.
+- Confirm that denied registrations release their reserved capacity and balance.
+- On or after a scheduled date, confirm that the student can mark their Approved or Ongoing duty complete.
+- Confirm that schedule and registration updates appear in student notifications.
 
-### Security and files
+### Content, display, and files
 
-- Verify that one student cannot open another student's document.
-- Verify that document links expire and are not permanent public links.
-- Confirm that the service-role key is absent from browser source and network responses.
-- Confirm that direct unauthenticated visits to `/student` and `/admin` redirect to login.
+- Create, edit, and delete an announcement; confirm its intended batch audience.
+- Check dashboards, forms, cards, tables, calendars, dialogs, navigation, loading state, and theme controls on desktop and mobile widths.
+- Test light and dark modes, including selected navigation, current calendar date, batch colors, statistics, and action-button contrast.
+- Confirm that long names, year-section values, statuses, and announcements wrap without overlapping controls.
+- Verify that one student cannot open another student's evidence.
+- Verify that evidence links expire and are not permanent public URLs.
+- In browser developer tools, confirm that the service-role key is absent from page source, JavaScript, and network responses.
 
-## 4. Client handoff
+## Phase 5: Client handoff
 
 Provide the client with:
 
-- The production website address.
-- Ownership or administrator access to the hosting account.
-- Ownership or administrator access to the Supabase organization.
-- Ownership of the domain and DNS records.
-- The initial Clinical Head credentials through a private channel.
-- Instructions for creating students and issuing temporary passwords.
-- The agreed document-retention and account-removal process.
+- Production website address and custom domain
+- Administrator access to the hosting and Supabase organizations
+- Domain and DNS ownership
+- Initial Clinical Head credentials through a private channel
+- Instructions for creating students, adding tallies, publishing schedules, reviewing requests, and issuing temporary passwords
+- Agreed backup, privacy, support, document-retention, and account-removal procedures
 
-Do not send the service-role key, database password, or user passwords in the same document as the public website address.
+Do not place the public URL, service-role key, database password, and user passwords in one handoff document.
 
-## 5. Backup and rollback
+## Monitoring during a one-month pilot
 
-### Before the pilot
+- Check host build, request, bandwidth, and compute usage every few days.
+- Check Supabase database, Storage, and egress usage every few days.
+- Visit a Supabase Free project regularly; low-activity projects may pause after seven days.
+- Export important database records on the client's agreed schedule.
+- Review application and Supabase logs after failed logins, uploads, registration errors, or unexpected status changes.
+- Remove evidence and accounts according to the institution's retention policy.
 
-1. Export the Supabase database schema and data.
-2. Record the deployed Git commit.
-3. Verify that the export can be stored in an encrypted location.
+## Rollback
 
-### During the pilot
+1. Record the Git commit used for every production release.
+2. Before a database migration, create and verify a backup. Application rollback does not reverse a database migration.
+3. For an application-only problem, publish or promote the last known-good deployment in Netlify, Render, or Vercel.
+4. For a database problem, stop administrative writes, assess the affected migration, and restore or repair from the verified backup. Do not improvise a destructive rollback on live client data.
+5. Repeat the acceptance checks that cover the affected feature before reopening the service.
 
-1. Check hosting and Supabase usage every few days.
-2. Export important data regularly because Supabase Free does not include downloadable managed backups.
-3. Keep real medical and payment documents only for the approved retention period.
+## Official platform references
 
-### Roll back the application
-
-- On Netlify, open **Deploys**, choose the last working deployment, and publish it.
-- On Render, open **Deploys** and roll back to a recent successful deployment.
-- On Vercel, open **Deployments**, select a known-good deployment, and promote it to Production.
-
-Application rollback does not reverse database migrations or restore deleted records. Restore database data separately from a verified backup.
-
-## 6. Removing the trial deployment
-
-At the end of the trial:
-
-1. Export any records the institution must retain.
-2. Confirm that the client has received the export.
-3. Remove real uploaded evidence according to the approved retention policy.
-4. Disable or remove trial accounts.
-5. Remove the custom domain from the trial host.
-6. Delete hosting and Supabase resources only after the client confirms that they are no longer required.
-
-## Official platform documentation
-
-- [Netlify Next.js deployment](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/)
-- [Netlify pricing and free-tier credits](https://www.netlify.com/pricing/)
+- [Netlify Next.js overview](https://docs.netlify.com/build/frameworks/framework-setup-guides/nextjs/overview/)
+- [Netlify pricing](https://www.netlify.com/pricing/)
 - [Render Next.js deployment](https://render.com/docs/deploy-nextjs-app)
-- [Render free-tier limitations](https://render.com/docs/free)
-- [Vercel Next.js deployment](https://vercel.com/docs/frameworks/full-stack/nextjs)
-- [Supabase pricing](https://supabase.com/pricing)
+- [Render free services](https://render.com/docs/free)
+- [Vercel Node.js versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
+- [Vercel environment variables](https://vercel.com/docs/environment-variables/framework-environment-variables)
 - [Supabase production checklist](https://supabase.com/docs/guides/deployment/going-into-prod)
+- [Supabase Auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls)
+- [Supabase Storage upload limits](https://supabase.com/docs/guides/storage/uploads/file-limits)

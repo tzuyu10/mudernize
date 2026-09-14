@@ -2,10 +2,12 @@
 import { requireUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import {calculateTallyBalances,type DutyCategory} from '@/lib/tally'
 export async function registerForSchedule(form:FormData) {
  const {supabase,user}=await requireUser('student')
  const id=Number(form.get('schedule_id'))
  let failure=''
+ const uploadedPaths:string[]=[]
  try {
   const type=String(form.get('duty_type'))
   const missedCount=Number(form.get('missed_count'))
@@ -24,6 +26,13 @@ export async function registerForSchedule(form:FormData) {
   if(schedule.current_count>=schedule.max_capacity) throw new Error('This duty schedule is already full.')
   if(existingError) throw new Error('Unable to verify your existing registrations.')
   if(existing) throw new Error('You already have an active registration for this schedule.')
+  const [{data:adjustments,error:tallyError},{data:registrations,error:registrationsError}]=await Promise.all([
+   supabase.from('tally_adjustments').select('duty_type,signed_total').eq('student_id',user.id),
+   supabase.from('registrations').select('duty_type,duty_count,status').eq('student_id',user.id)
+  ])
+  if(tallyError||registrationsError)throw new Error('Unable to verify your duty tally. Please try again.')
+  const balance=calculateTallyBalances(adjustments,registrations)[type as DutyCategory]
+  if(!balance||count>balance.remaining)throw new Error(`Only ${balance?.remaining||0} ${type} duties are available to register.`)
   const keys=type==='waived'?['medcert','excuse_letter']:['receipt']
   const uploads:Record<string,string>={}
   // Validate every file before uploading any.
@@ -38,10 +47,14 @@ export async function registerForSchedule(form:FormData) {
    const {error}=await supabase.storage.from('duty-documents').upload(path,file,{contentType:file.type,upsert:false})
    if(error) throw error
    uploads[key]=path
+   uploadedPaths.push(path)
   }
   const {error}=await supabase.from('registrations').insert({student_id:user.id,schedule_id:id,duty_type:type,duty_count:count,absence_date:absenceDate,receipt_number:type==='waived'?null:String(form.get('receipt_number')||'').trim(),receipt_url:uploads.receipt||null,medcert_path:uploads.medcert||null,excuse_letter_path:uploads.excuse_letter||null})
   if(error) throw error
- } catch(e) { failure=e instanceof Error?e.message:'Unable to submit. Check your documents and slot availability.' }
+ } catch(e) {
+  if(uploadedPaths.length)await supabase.storage.from('duty-documents').remove(uploadedPaths)
+  failure=e instanceof Error?e.message:'Unable to submit. Check your documents and slot availability.'
+ }
  if(failure) redirect(`/student/registration/${id}?error=${encodeURIComponent(failure)}`)
  revalidatePath('/student','layout')
  redirect('/student/registration?message=Registration+submitted+for+review')

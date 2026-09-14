@@ -35,6 +35,8 @@ for(const [index,a] of accounts.slice(1).entries()) {
  const s=check(await db.from('mud_schedules').insert({date:date.toISOString().slice(0,10),time_slot:'AM',max_capacity:10,year_level:'all',batch:a.batch,clinical_area:'Demo ward '+(index+1),created_by:admin.uuid}).select().single())
  const path=a.uuid+'/demo-document.png'
  check(await db.storage.from('duty-documents').upload(path,bytes,{contentType:'image/png'}))
+ const ratio=a.recommendation==='unexcused'?3:1
+ check(await db.from('tally_adjustments').insert({student_id:a.uuid,added_by:admin.uuid,duty_type:a.recommendation,missed_count:1,duty_ratio:ratio,adjustment_kind:'increase'}))
  check(await db.from('registrations').insert({student_id:a.uuid,schedule_id:s.schedule_id,duty_type:a.recommendation,absence_date:today,duty_count:1,receipt_number:a.recommendation==='waived'?null:'DEMO-RECEIPT-'+(index+1),receipt_url:a.recommendation==='waived'?null:path,medcert_path:a.recommendation==='waived'?path:null,excuse_letter_path:a.recommendation==='waived'?path:null}))
 }
 console.log('Sample data ready. Documents are demo placeholders, not real medical or payment records. All registrations start pending; use the admin review screen to exercise the workflow.')
