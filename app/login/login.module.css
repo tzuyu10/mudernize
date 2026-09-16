@@ -75,6 +75,7 @@
 .eyeButton:hover { color: #095baf; }
 .forgot { display: block; margin: 9px 0 0 auto; padding: 0; background: none; border: 0; color: #53687d; font-size: 10px; min-height: 18px; }
 .forgot:hover { color: #095baf; text-decoration: underline; }
+.signupPrompt{text-align:center;color:#687b90;font-size:10px;margin:-7px 0 0}.signupPrompt a{color:#095baf;font-weight:750}.signupPrompt a:hover{text-decoration:underline;text-underline-offset:3px}
 .categoryField { position: relative; }
 .categoryTrigger { display: flex; align-items: center; gap: 10px; padding: 7px 11px; width: 100%; min-height: 46px; border: 1px solid #8ea1b526; border-radius: 8px; background: #edf1f5b8; font-family: inherit; font-size: 12px; text-align: left; color: #6e8194; }
 .categoryTrigger > svg { margin-left: auto; }
@@ -195,4 +196,5 @@
 :global(html[data-theme="dark"]) .submit{background:linear-gradient(112deg,#1474cf,#0953a4 58%,#103c85);border-color:#3784d0;color:#fff;box-shadow:0 7px 22px #0005,inset 0 1px 0 #ffffff35}:global(html[data-theme="dark"]) .submit:hover:not(:disabled){background:linear-gradient(112deg,#2087e5,#0a5db8);filter:none}:global(html[data-theme="dark"]) .eyeButton{color:#afc0d3;background:#152337;border-left:1px solid #31445c;margin-right:-12px;padding:0 12px}:global(html[data-theme="dark"]) .eyeButton:hover{color:#fff;background:#1c3048}:global(html[data-theme="dark"]) .forgot{color:#aebed0}:global(html[data-theme="dark"]) .forgot:hover{color:#8fc5ff}:global(html[data-theme="dark"]) .batchRow button{color:#dbe6f2;background:#111f31;border-color:#405269}:global(html[data-theme="dark"]) .batchRow button:hover,:global(html[data-theme="dark"]) .batchRow .batchActive{background:#1c3048;border-color:#70a9df;color:#fff}:global(html[data-theme="dark"]) .options strong{color:#edf3fa!important}:global(html[data-theme="dark"]) .menu .helpButton{background:#15243a;border-color:#41546b;color:#d7e4f2}:global(html[data-theme="dark"]) .dialogDone{background:#1269be;border:1px solid #4b91d2}:global(html[data-theme="dark"]) .dialogClose{background:#1a2b40;color:#d6e1ed}
 
 @media(max-width:680px){.menu>button:not(.helpButton){display:none}.menu{gap:8px}.footer>div{width:100%;justify-content:center}.page{overflow-x:hidden;overflow-y:auto}}
+:global(html[data-theme="dark"]) .signupPrompt{color:#aebed0}:global(html[data-theme="dark"]) .signupPrompt a{color:#8fc5ff}
 @media(max-width:410px){.header{flex-direction:row}.menu{width:auto;justify-content:flex-end}.wordmark>span:last-child{display:none}.card{padding-inline:18px}.batchRow{grid-template-columns:1fr}.batchRow button{justify-content:flex-start;padding-inline:12px}}

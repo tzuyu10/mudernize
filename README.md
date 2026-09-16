@@ -28,21 +28,22 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 
 ### Student workflow
 
-1. The student signs in using a student number, batch, and password.
-2. The dashboard displays announcements, recent registration updates, notifications, and the remaining tally assigned by the Clinical Head.
-3. The student opens Duty Registration. The page shows the required, registered, completed, and available counts for each duty category.
-4. The student selects an available schedule from the calendar. A schedule can be selected only when at least one duty category has an available balance.
-5. The student enters the absence or appearance date and chooses a category:
+1. A new student creates an account using an official student number, active batch, name, year and section, and password. The student ID year and year level must match the selected batch.
+2. The student signs in using the registered student number, batch, and password.
+3. The dashboard displays announcements, recent registration updates, notifications, and the remaining tally assigned by the Clinical Head.
+4. The student opens Duty Registration. The page shows the required, registered, completed, and available counts for each duty category.
+5. The student selects an available schedule from the calendar. A schedule can be selected only when at least one duty category has an available balance.
+6. The student enters the absence or appearance date and chooses a category:
    - **Excused** — requires a payment receipt and receipt number.
    - **Unexcused** — requires a payment receipt and receipt number.
    - **Waived** — requires a medical certificate and excuse letter.
-6. The requested duty count cannot exceed the remaining tally for the selected category.
-7. The student reviews the information and submits the registration.
-8. The request appears as **Pending** while waiting for Clinical Head review.
-9. The student receives a notification when the request is approved, denied, started, completed, or otherwise updated.
-10. Approved, ongoing, and completed duties appear in the My Schedule calendar.
-11. On or after an approved schedule's date, the student can mark that duty as completed from the calendar.
-12. My Profile displays the student's identity, year and section, contact information, and category balances.
+7. The requested duty count cannot exceed the remaining tally for the selected category.
+8. The student reviews the information and submits the registration.
+9. The request appears as **Pending** while waiting for Clinical Head review.
+10. The student receives a notification when the request is approved, denied, started, completed, or otherwise updated.
+11. Approved, ongoing, and completed duties appear in the My Schedule calendar.
+12. On or after an approved schedule's date, the student can mark that duty as completed from the calendar.
+13. My Profile displays the student's identity, year and section, contact information, and category balances.
 
 ### Clinical Head workflow
 
@@ -59,6 +60,7 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 ## Student features
 
 - Secure role-aware sign-in
+- Student self-signup with active-batch, student-ID, and year-section validation
 - Batch-specific visual theme and branding
 - Dashboard status counts for Pending, Ongoing, Completed, and Total requests
 - General and batch-specific announcements
@@ -169,7 +171,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-private-service-role-key
 ```
 
-The server environment must use Node.js 20 or newer. Public account signup should be disabled because Clinical Heads create student accounts through the system.
+The server environment must use Node.js 20 or newer. Keep Supabase's direct public email signup disabled. The application's `/signup` route provisions student-only accounts through validated server code, while Clinical Heads can still create and manage accounts from My Students.
 
 ## Database requirements
 
@@ -200,7 +202,7 @@ For an existing database, apply `002_performance_concurrency.sql` through `010_e
 
 - Students can access only their own profile, registrations, schedule, notifications, and uploaded evidence.
 - Clinical Head functions require an authenticated administrator account.
-- Students cannot create accounts or elevate their roles.
+- Students can create only student accounts through the validated signup page and cannot choose or elevate their roles.
 - Sensitive account creation uses a server-only administrative client.
 - Database constraints protect schedule capacity during concurrent registrations.
 - Transactional database locks prevent concurrent tally edits or registrations from exceeding a student's assigned category balance.

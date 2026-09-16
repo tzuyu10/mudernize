@@ -152,6 +152,7 @@ export default function LoginScreen({ error, message,batches }: { error?: string
             <a className={styles.forgot} href="/forgot-password">Forgot password?</a>
           </div>
           <SubmitButton />
+          <p className={styles.signupPrompt}>New student? <a href="/signup">Create an account</a></p>
         </form>
         <div className={styles.divider}><span />HERE FOR EVERY BATCH<span /></div>
         <div className={styles.batchRow}>
