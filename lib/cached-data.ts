@@ -2,17 +2,17 @@ import 'server-only'
 import { unstable_cache } from 'next/cache'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-const scheduleFields='schedule_id,date,time_slot,max_capacity,current_count,clinical_area,batch,year_level,status'
+const scheduleFields='schedule_id,date,time_slot,max_capacity,current_count,clinical_area,batch,year_level,status,archived_at'
 const announcementFields='announcement_id,title,content,batch,posted_at,updated_at'
 const result=<T>(data:T[]|null,error:{message:string}|null)=>({data:data||[],error:error?{message:error.message}:null})
 
 export const getStudentSchedules=unstable_cache(async(batch:string,year:string,today:string)=>{
- const {data,error}=await createAdminClient().from('mud_schedules').select(scheduleFields).eq('status','open').gte('date',today).or(`batch.is.null,batch.eq.${batch}`).or(`year_level.is.null,year_level.eq.all,year_level.eq.${year}`).order('date')
+ const {data,error}=await createAdminClient().from('mud_schedules').select(scheduleFields).is('archived_at',null).eq('status','open').gte('date',today).or(`batch.is.null,batch.eq.${batch}`).or(`year_level.is.null,year_level.eq.all,year_level.eq.${year}`).order('date')
  return result(data,error)
 },['student-schedules-v1'],{revalidate:20,tags:['schedules']})
 
 export const getAllSchedules=unstable_cache(async()=>{
- const {data,error}=await createAdminClient().from('mud_schedules').select(scheduleFields).order('date')
+ const {data,error}=await createAdminClient().from('mud_schedules').select(scheduleFields).is('archived_at',null).order('date')
  return result(data,error)
 },['all-schedules-v1'],{revalidate:20,tags:['schedules']})
 

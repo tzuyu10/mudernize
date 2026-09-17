@@ -16,7 +16,7 @@ export async function registerForSchedule(form:FormData) {
   if(!['excused','unexcused','waived'].includes(type)||!Number.isInteger(count)||count<1||count>30||!Number.isInteger(id)) throw new Error('Invalid registration details.')
   const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Manila'})
   const [{data:schedule,error:scheduleError},{data:existing,error:existingError}]=await Promise.all([
-   supabase.from('mud_schedules').select('schedule_id,date,status,max_capacity,current_count').eq('schedule_id',id).maybeSingle(),
+   supabase.from('mud_schedules').select('schedule_id,date,status,max_capacity,current_count').eq('schedule_id',id).is('archived_at',null).maybeSingle(),
    supabase.from('registrations').select('registration_id').eq('student_id',user.id).eq('schedule_id',id).neq('status','denied').maybeSingle()
   ])
   if(scheduleError||!schedule) throw new Error('This schedule is not available for your batch or year.')

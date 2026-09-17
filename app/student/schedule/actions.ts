@@ -10,7 +10,9 @@ export async function completeScheduledDuty(form:FormData) {
  const {error}=await supabase.rpc('complete_own_duty',{target_registration:registrationId})
  if(error) redirect('/student/schedule?error='+encodeURIComponent(error.message))
  revalidatePath('/student','layout')
+ revalidatePath('/student/profile')
+ revalidatePath('/student/registration')
  revalidatePath('/admin','layout')
+ revalidatePath('/admin/students')
  redirect('/student/schedule?message=Scheduled+duty+marked+as+completed.')
 }
-

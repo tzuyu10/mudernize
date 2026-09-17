@@ -1,6 +1,6 @@
 -- Run once after 005_batch_and_user_management.sql.
--- Lets a student mark only their own approved or ongoing duty as completed,
--- and only on or after the scheduled date in the Asia/Manila time zone.
+-- Lets a student complete only their own approved or ongoing duty on or after
+-- its scheduled date, while preserving the enforced status workflow.
 
 BEGIN;
 
@@ -14,35 +14,39 @@ SECURITY DEFINER
 SET search_path=public
 AS $$
 DECLARE
+ current_status text;
  completed_time timestamptz;
 BEGIN
- IF auth.uid() IS NULL THEN
-  RAISE EXCEPTION 'Authentication required';
- END IF;
-
- IF NOT EXISTS(
-  SELECT 1 FROM public.users
-  WHERE user_id=auth.uid() AND role='student' AND is_active=true
- ) THEN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Authentication required'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.users WHERE user_id=auth.uid() AND role='student' AND coalesce(is_active,true)) THEN
   RAISE EXCEPTION 'Active student access required';
  END IF;
 
- UPDATE public.registrations AS registration
- SET status='completed',
-     student_completed_at=now(),
-     verified_at=now()
- FROM public.mud_schedules AS schedule
+ SELECT registration.status INTO current_status
+ FROM public.registrations AS registration
+ JOIN public.mud_schedules AS schedule ON schedule.schedule_id=registration.schedule_id
  WHERE registration.registration_id=target_registration
    AND registration.student_id=auth.uid()
-   AND registration.schedule_id=schedule.schedule_id
    AND registration.status IN ('verified','ongoing')
    AND schedule.date <= (now() AT TIME ZONE 'Asia/Manila')::date
- RETURNING registration.student_completed_at INTO completed_time;
+ FOR UPDATE OF registration;
 
- IF completed_time IS NULL THEN
+ IF current_status IS NULL THEN
   RAISE EXCEPTION 'This duty cannot be completed. It must belong to you, be approved or ongoing, and have reached its scheduled date.';
  END IF;
 
+ IF current_status='verified' THEN
+  UPDATE public.registrations
+  SET status='ongoing',verified_at=coalesce(verified_at,now())
+  WHERE registration_id=target_registration AND student_id=auth.uid() AND status='verified';
+ END IF;
+
+ UPDATE public.registrations
+ SET status='completed',student_completed_at=now(),verified_at=coalesce(verified_at,now())
+ WHERE registration_id=target_registration AND student_id=auth.uid() AND status='ongoing'
+ RETURNING student_completed_at INTO completed_time;
+
+ IF completed_time IS NULL THEN RAISE EXCEPTION 'The duty status changed before completion. Refresh and try again.'; END IF;
  RETURN completed_time;
 END;
 $$;
@@ -55,4 +59,3 @@ CREATE INDEX IF NOT EXISTS mud_registrations_student_completion
  WHERE student_completed_at IS NOT NULL;
 
 COMMIT;
-

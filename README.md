@@ -22,7 +22,7 @@ Students belong to one of three batches:
 
 ### Clinical Heads
 
-Clinical Heads are administrators who manage student accounts, schedules, announcements, registration reviews, password-reset requests, and student duty tallies.
+Clinical Heads are administrators who manage student accounts, schedules, announcements, registration reviews, access status, and student duty tallies.
 
 ## System workflow
 
@@ -30,20 +30,21 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 
 1. A new student creates an account using an official student number, active batch, name, year and section, and password. The student ID year and year level must match the selected batch.
 2. The student signs in using the registered student number, batch, and password.
-3. The dashboard displays announcements, recent registration updates, notifications, and the remaining tally assigned by the Clinical Head.
-4. The student opens Duty Registration. The page shows the required, registered, completed, and available counts for each duty category.
-5. The student selects an available schedule from the calendar. A schedule can be selected only when at least one duty category has an available balance.
-6. The student enters the absence or appearance date and chooses a category:
+3. From My Profile, the student can update their name and contact profile, change their own password, and add 1:1 Excused, Waived, or Unexcused tally requirements.
+4. The dashboard displays announcements, recent registration updates, notifications, and the remaining tally.
+5. The student opens Duty Registration. The page shows the required, registered, completed, and available counts for each duty category.
+6. The student selects an available schedule from the calendar. A schedule can be selected only when at least one duty category has an available balance.
+7. The student enters the absence or appearance date and chooses a category:
    - **Excused** — requires a payment receipt and receipt number.
    - **Unexcused** — requires a payment receipt and receipt number.
    - **Waived** — requires a medical certificate and excuse letter.
-7. The requested duty count cannot exceed the remaining tally for the selected category.
-8. The student reviews the information and submits the registration.
-9. The request appears as **Pending** while waiting for Clinical Head review.
-10. The student receives a notification when the request is approved, denied, started, completed, or otherwise updated.
-11. Approved, ongoing, and completed duties appear in the My Schedule calendar.
-12. On or after an approved schedule's date, the student can mark that duty as completed from the calendar.
-13. My Profile displays the student's identity, year and section, contact information, and category balances.
+8. The requested duty count cannot exceed the remaining tally for the selected category.
+9. The student reviews the information and submits the registration.
+10. The request appears as **Pending** while waiting for Clinical Head review.
+11. The student receives a notification when the request is approved, denied, started, completed, or otherwise updated.
+12. Approved, ongoing, and completed duties appear in the My Schedule calendar.
+13. On or after an approved schedule's date, the student can mark that duty as completed from the calendar.
+14. My Profile displays the student's identity, year and section, contact information, and category balances.
 
 ### Clinical Head workflow
 
@@ -55,12 +56,13 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 6. Verification displays searchable registration cards with student details, evidence, recommendations, and review notes.
 7. The Clinical Head can approve, start, complete, or deny a registration. Denial requires a reason and notifies the student.
 8. Announcements can be published for all students or a selected batch.
-9. Password-reset requests can be reviewed, and a temporary password can be assigned to the account owner.
 
 ## Student features
 
 - Secure role-aware sign-in
 - Student self-signup with active-batch, student-ID, and year-section validation
+- Student-owned name, contact-profile, password, and 1:1 tally updates
+- Account recovery with Clinical Head identity approval and a 15-minute one-time code
 - Batch-specific visual theme and branding
 - Dashboard status counts for Pending, Ongoing, Completed, and Total requests
 - General and batch-specific announcements
@@ -83,9 +85,11 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 - Clinical Head dashboard and analytics
 - Student account creation with automatic cohort validation, an optional middle initial, and required year-and-section information such as `4NU-05`
 - Batch creation, archiving, activation, and guarded deletion
-- Student profile editing, access suspension, and temporary-password management
+- Clinical Head batch-logo upload and replacement using transparent PNG, JPG, or WebP images
+- Student academic-record management and access suspension
 - Password visibility control during account creation
 - Student search and batch filtering
+- Alphabetical student ordering after search and batch filtering
 - Separate Excused, Waived, and Unexcused tally columns
 - Audited tally increases and decreases with safeguards for active registrations
 - Unexcused repeat-rotation ratios of 1:3 or 1:6
@@ -95,7 +99,6 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 - Secure evidence links with limited availability
 - Approval, denial, ongoing, and completion actions
 - General and batch-specific announcement management
-- Password-reset request handling
 - Confirmation prompts for major changes
 - Light and dark modes
 - Responsive layouts for desktop, tablet, and mobile devices
@@ -111,10 +114,10 @@ Clinical Heads are administrators who manage student accounts, schedules, announ
 - Absence dates cannot be in the future.
 - Duty registrations use a 1:1 ratio for Excused, Unexcused, and Waived requests.
 - Manually added Unexcused tallies can use a 1:3 or 1:6 repeat-rotation ratio.
-- Clinical Heads can increase or decrease category requirements; decreases cannot go below duties already registered.
+- Students can increase or decrease their own 1:1 category requirements. Clinical Heads can also change requirements; no decrease can go below duties already registered.
 - Students can register only the remaining Excused, Waived, or Unexcused balance assigned to them.
 - Schedule dates and audiences are locked after registrations exist.
-- Only empty schedules can be deleted.
+- Clinical Heads can delete any Open, Closed, or finished schedule. Empty schedules are removed permanently; schedules with registrations are archived so their history remains intact.
 - Denied registrations release their reserved schedule capacity.
 - Students can complete only their own Approved or Ongoing duty on or after its scheduled date.
 
@@ -157,7 +160,7 @@ The client must provide and maintain:
 - An approved list of student accounts and their correct batch assignments
 - Final wording for announcements, support details, privacy notices, and institutional policies
 - A defined document-retention period for receipts and medical documents
-- A process for distributing initial and temporary passwords securely
+- A process for distributing administrator-created initial passwords securely
 
 The Supabase service-role key must be available only to trusted server code. It must never be included in browser code, screenshots, public documentation, or client-side environment variables.
 
@@ -182,18 +185,18 @@ The system uses the following main database records:
 - Make-up duty schedules
 - Duty registrations
 - Verification notes
-- Password-reset requests
 - Tally adjustments
 - Signed tally balances and registration-allocation safeguards
 
 The production database must include the supplied constraints, indexes, triggers, storage configuration, and Row Level Security policies. These rules protect student data, validate registration transitions, reserve schedule capacity safely, and support concurrent users.
 
-For an existing database, apply `002_performance_concurrency.sql` through `010_exact_tally_decrease.sql` in numeric order. Migration 008 adds year-and-section records. Migration 009 adds tally decreases and prevents registrations from exceeding assigned balances. Migration 010 lets Clinical Heads remove exact unregistered duty units while retaining the configured addition ratios.
+For an existing database, apply `002_performance_concurrency.sql` through `013_tally_completion_fixes.sql` in numeric order. Migration 008 adds year-and-section records. Migration 009 adds tally decreases and prevents registrations from exceeding assigned balances. Migration 010 lets Clinical Heads remove exact unregistered duty units. Migration 011 adds student-owned profile/tally support and safe schedule archival. Migration 012 adds public read-only storage for Clinical Head-managed batch logos. Migration 013 fixes student tally decreases and completion transitions.
 
 ## Document requirements
 
 - Accepted file formats: PDF, JPG, and PNG
 - Maximum file size: 5 MB per document
+- Batch logos accept PNG, JPG, or WebP images up to 2 MB; transparent PNG is recommended.
 - Excused and Unexcused requests require a receipt and receipt number.
 - Waived requests require both a medical certificate and an excuse letter.
 - Evidence files are stored in a private bucket and opened through short-lived signed links.
@@ -203,6 +206,7 @@ For an existing database, apply `002_performance_concurrency.sql` through `010_e
 - Students can access only their own profile, registrations, schedule, notifications, and uploaded evidence.
 - Clinical Head functions require an authenticated administrator account.
 - Students can create only student accounts through the validated signup page and cannot choose or elevate their roles.
+- Authenticated students can change only their own password and add tally requirements only to their own account.
 - Sensitive account creation uses a server-only administrative client.
 - Database constraints protect schedule capacity during concurrent registrations.
 - Transactional database locks prevent concurrent tally edits or registrations from exceeding a student's assigned category balance.
@@ -225,7 +229,7 @@ Demo passwords are assigned during account creation and should be delivered sepa
 
 ## Current limitations
 
-- Password resets are completed manually by a Clinical Head using a temporary password.
+- A signed-in student can change their password from My Profile. A locked-out student can request recovery, receive a short-lived code after Clinical Head identity approval, and choose their own replacement password.
 - The system does not send email, SMS, or operating-system push notifications.
 - Notifications are displayed inside the application.
 - Uploaded evidence is not automatically scanned for malware or checked for authenticity.

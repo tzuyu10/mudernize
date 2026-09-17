@@ -22,7 +22,7 @@ Netlify currently supports the Next.js App Router, server-side rendering, Middle
 - Supabase service-role key for server-only administration
 - Final production domain, if applicable
 - Initial Clinical Head account information
-- A private method for delivering initial and temporary passwords
+- A private method for delivering administrator-created initial passwords
 - Approved privacy, backup, document-retention, and account-removal policies
 
 Never commit `.env.local` or expose `SUPABASE_SERVICE_ROLE_KEY` in GitHub, screenshots, browser code, or a variable whose name starts with `NEXT_PUBLIC_`.
@@ -72,8 +72,11 @@ Open **Supabase Dashboard → SQL Editor** and run each missing file once in num
 7. `database/008_year_section.sql`
 8. `database/009_tally_balances.sql`
 9. `database/010_exact_tally_decrease.sql`
+10. `database/011_student_self_service.sql`
+11. `database/012_batch_logo_storage.sql`
+12. `database/013_tally_completion_fixes.sql`
 
-Migration 008 adds the required `year_section` field using values such as `4NU-05`. Migration 009 adds signed tally adjustments, student balance checks, and transactional protection against concurrent registrations exceeding an assigned tally. Migration 010 allows exact-unit tally reductions without changing the 1:3 and 1:6 Unexcused addition rules.
+Migration 008 adds the required `year_section` field using values such as `4NU-05`. Migration 009 adds signed tally adjustments, student balance checks, and transactional protection against concurrent registrations exceeding an assigned tally. Migration 010 allows exact-unit tally reductions. Migration 011 adds student-owned 1:1 tally additions and safe archival for finished schedules. Migration 012 creates the public read-only bucket used for Clinical Head-managed batch logos. Migration 013 fixes student tally decreases and safely advances Approved duties through Ongoing before completion.
 
 Do not run `database/001_base.sql` over an existing database. Follow `database/EXISTING_DATABASE.md` when upgrading an existing project.
 
@@ -101,11 +104,12 @@ Do not deploy until this command confirms that the connected database contains a
 2. In **Authentication → URL Configuration**, set the production **Site URL** after the host supplies it and add the exact production URL to **Redirect URLs**.
 3. Confirm that Row Level Security is enabled on every application table.
 4. Confirm that `duty-documents` is a private Storage bucket.
-5. Confirm that students can read only their own profile, registrations, notifications, and evidence.
-6. Confirm that only authenticated Clinical Heads can create accounts or change administrative data.
-7. Review **Database → Security Advisor** and resolve applicable warnings.
-8. Configure the Storage file-size limit consistently with MUDernize's 5 MB application limit.
-9. Remove unused demo accounts and test documents before client access.
+5. Confirm that `batch-logos` is public for image delivery, limited to PNG/JPG/WebP files up to 2 MB, and has no browser upload policy.
+6. Confirm that students can read only their own profile, registrations, notifications, and evidence.
+7. Confirm that only authenticated Clinical Heads can create accounts or change administrative data.
+8. Review **Database → Security Advisor** and resolve applicable warnings.
+9. Configure the evidence Storage file-size limit consistently with MUDernize's 5 MB application limit.
+10. Remove unused demo accounts and test documents before client access.
 
 ### Optional data operations
 
@@ -191,14 +195,17 @@ Use test identities and non-sensitive placeholder files. Remove them when accept
 - Sign in as a student from Sanghaya, Solaris, and Astraea.
 - Confirm that choosing the wrong batch rejects a student login.
 - Sign in as a Clinical Head and verify all admin routes.
-- Submit and process a password-recovery request.
+- Change a student password from that student's My Profile page and confirm the Clinical Head interface has no password-change control.
+- Request recovery while signed out, approve it as a Clinical Head, and confirm the student can use the code once before its 15-minute expiration.
+- Edit the student's name and contact profile, then confirm the updated name appears throughout the student workspace.
 - Confirm that a suspended student cannot sign in.
 - Confirm that unauthenticated requests to `/student` and `/admin` return to login.
 
 ### Student and tally workflow
 
 - Create a temporary student with an optional middle initial and a valid year-and-section value such as `4NU-05`; confirm that the creation form clears.
-- Add Excused, Waived, and Unexcused tally requirements from the Clinical Head account.
+- Add 1:1 Excused, Waived, and Unexcused tally requirements from a student account and confirm they appear in the Clinical Head table.
+- Filter My Students by each batch and confirm the resulting students are sorted alphabetically by displayed name.
 - Increase and decrease a tally; confirm that its audit history and the student's Required, Registered, Completed, and Available values update.
 - Confirm that a tally cannot be reduced below duties already registered.
 - Confirm that Duty Registration shows the remaining balance and blocks requests that exceed it.
@@ -207,6 +214,7 @@ Use test identities and non-sensitive placeholder files. Remove them when accept
 ### Schedule and registration workflow
 
 - Create, edit, close, and delete an empty schedule from the calendar popup.
+- Complete or deny every registration on a past schedule, delete the finished schedule, and confirm it disappears from active calendars while completed student history remains visible.
 - Confirm that registered schedules cannot have protected fields changed or be deleted as empty.
 - Submit Excused and Unexcused registrations with a receipt and receipt number.
 - Submit a Waived registration with a medical certificate and excuse letter.
@@ -219,6 +227,7 @@ Use test identities and non-sensitive placeholder files. Remove them when accept
 ### Content, display, and files
 
 - Create, edit, and delete an announcement; confirm its intended batch audience.
+- Upload and replace a transparent batch logo, then confirm it appears on login and in the student sidebar in light and dark modes.
 - Check dashboards, forms, cards, tables, calendars, dialogs, navigation, loading state, and theme controls on desktop and mobile widths.
 - Test light and dark modes, including selected navigation, current calendar date, batch colors, statistics, and action-button contrast.
 - Confirm that long names, year-section values, statuses, and announcements wrap without overlapping controls.
@@ -234,7 +243,7 @@ Provide the client with:
 - Administrator access to the hosting and Supabase organizations
 - Domain and DNS ownership
 - Initial Clinical Head credentials through a private channel
-- Instructions for creating students, adding tallies, publishing schedules, reviewing requests, and issuing temporary passwords
+- Instructions for creating students, adding tallies, publishing schedules, reviewing requests, and student-owned password changes
 - Agreed backup, privacy, support, document-retention, and account-removal procedures
 
 Do not place the public URL, service-role key, database password, and user passwords in one handoff document.

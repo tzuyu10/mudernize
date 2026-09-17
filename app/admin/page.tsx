@@ -9,7 +9,7 @@ export default async function Page(){
  const [{data:registrations,error},{data:students},{data:schedules},{data:batchConfigs}]=await Promise.all([
   supabase.from('registrations').select('status,duty_type,duty_count,submitted_at,users!registrations_student_id_fkey(batch)'),
   supabase.from('users').select('user_id,batch,is_active').eq('role','student'),
-  supabase.from('mud_schedules').select('status,date,max_capacity,current_count'),
+  supabase.from('mud_schedules').select('status,date,max_capacity,current_count').is('archived_at',null),
   getBatchConfigs(true),
  ])
  const rows=registrations||[],studentRows=students||[],scheduleRows=schedules||[]

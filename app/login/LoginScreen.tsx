@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { login } from './actions'
 import styles from './login.module.css'
@@ -27,7 +27,7 @@ function Icon({ name, size = 18 }: { name: IconName; size?: number }) {
 const information = {
   about: { title: 'A little more about MUDernize', text: 'MUDernize brings make-up duty registration, clinical schedules, announcements, and progress into one place for Sanghaya, Astraea, Solaris, and Clinical Heads.' },
   how: { title: 'Your next duty, in three steps', text: '1. Sign in with your assigned ID, category, and password.\n2. Choose an available duty schedule and upload your required documents.\n3. Submit for Clinical Head review, then follow your approved schedule in My schedule.' },
-  help: { title: 'Let’s get you signed in', text: 'Use the Student ID or Admin ID assigned to you. Select your batch, or Admin if you are a Clinical Head.\n\nFor a forgotten password, use the request link below the password field. A Clinical Head can then issue a temporary password.' },
+  help: { title: 'Let’s get you signed in', text: 'Use the Student ID or Admin ID assigned to you. Select your batch, or Admin if you are a Clinical Head.\n\nStudents who cannot sign in can select Forgot password, match their Student ID with their batch, and set a new password.' },
   privacy: { title: 'Your information stays in your portal', text: 'Your profile and registration records are available to you and authorized Clinical Heads. Supporting documents are stored privately.\n\nOnly upload documents required for your duty request. For access, correction, or retention questions, contact your Clinical Head.' },
 }
 type Info = keyof typeof information
@@ -40,6 +40,8 @@ function SubmitButton() {
 export default function LoginScreen({ error, message,batches }: { error?: string; message?: string;batches:BatchConfig[] }) {
   const categories=[...batches.map(batch=>({name:batch.name,detail:`${batch.year_level} year · Student portal`,logo:batch.logo_path,color:batch.theme_color})),{name:'Admin',detail:'Clinical Head portal',logo:'/logos/slcn-logo.png',color:undefined}]
   const [category, setCategory] = useState('')
+  const [identifier,setIdentifier]=useState('')
+  const [loginState,loginAction]=useActionState(login,{})
   const [open, setOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [categoryError, setCategoryError] = useState(false)
@@ -49,10 +51,12 @@ export default function LoginScreen({ error, message,batches }: { error?: string
   const trigger = useRef<HTMLButtonElement>(null)
   const options = useRef<(HTMLButtonElement | null)[]>([])
   const dialog = useRef<HTMLDialogElement>(null)
+  const passwordInput=useRef<HTMLInputElement>(null)
   const selected = categories.find(c => c.name === category)
 
   // Keep the banner in step with the props the server sends.
   useEffect(() => { setNotice({ error, message }) }, [error, message])
+  useEffect(()=>{if(loginState.error&&passwordInput.current){passwordInput.current.value='';passwordInput.current.focus()}},[loginState.error])
 
   // A reload should never re-show the banner: hide it if this page load is a
   // refresh, and strip the params so the next reload starts clean either way.
@@ -101,9 +105,9 @@ export default function LoginScreen({ error, message,batches }: { error?: string
             <p className={styles.subtitle}>A new day. A step closer.<br />Sign in to manage your make-up duties.</p>
           </div>
         </div>
-        {notice.error && <p role="alert" className={styles.error}>{notice.error}</p>}
+        {(loginState.error||notice.error) && <p role="alert" className={styles.error}>{loginState.error||notice.error}</p>}
         {notice.message && <p role="status" className={styles.message}>{notice.message}</p>}
-        <form action={login} className={styles.form} onSubmit={event => {
+        <form action={loginAction} className={styles.form} onSubmit={event => {
           if (!category) { event.preventDefault(); setCategoryError(true); trigger.current?.focus() }
         }}>
           <div ref={dropdown} className={styles.categoryField}>
@@ -144,11 +148,11 @@ export default function LoginScreen({ error, message,batches }: { error?: string
           </div>
           <div>
             <label htmlFor="identifier">{category === 'Admin' ? 'Admin ID' : 'Student ID'}</label>
-            <div className={styles.inputWrap}><Icon name="user" size={17} /><input id="identifier" name="identifier" autoComplete="username" placeholder={category === 'Admin' ? 'e.g. ADMIN-001' : category==='Sanghaya'?'e.g. 2025-301107':category==='Solaris'?'e.g. 2024-301109':'e.g. 2023-301108'} required maxLength={40} spellCheck={false} autoCapitalize="none" /></div>
+            <div className={styles.inputWrap}><Icon name="user" size={17} /><input id="identifier" name="identifier" value={identifier} onChange={event=>setIdentifier(event.target.value)} autoComplete="username" placeholder={category === 'Admin' ? 'e.g. ADMIN-001' : category==='Sanghaya'?'e.g. 2025-301107':category==='Solaris'?'e.g. 2024-301109':'e.g. 2023-301108'} required maxLength={40} spellCheck={false} autoCapitalize="none" /></div>
           </div>
           <div>
             <label htmlFor="password">Password</label>
-            <div className={styles.inputWrap}><Icon name="lock" size={17} /><input id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" required /><button type="button" className={styles.eyeButton} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}><Icon name={showPassword ? 'eyeOff' : 'eye'} size={17} /></button></div>
+            <div className={styles.inputWrap}><Icon name="lock" size={17} /><input ref={passwordInput} id="password" name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" required /><button type="button" className={styles.eyeButton} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)}><Icon name={showPassword ? 'eyeOff' : 'eye'} size={17} /></button></div>
             <a className={styles.forgot} href="/forgot-password">Forgot password?</a>
           </div>
           <SubmitButton />

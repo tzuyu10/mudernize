@@ -1,24 +1,27 @@
 'use server'
+
 import {redirect} from 'next/navigation'
 import {createAdminClient} from '@/lib/supabase/admin'
-import {accountEmail} from '@/lib/auth'
 
-export async function requestPasswordReset(form:FormData) {
- const rawIdentifier=String(form.get('identifier')||'').trim()
- const category=String(form.get('category')||'')
- const success='/forgot-password?message='+encodeURIComponent('If the account details match, a Clinical Head will receive your request. Ask them for your temporary password.')
- if(!category||category.length>40) redirect(success)
- const identifier=category==='Admin'?rawIdentifier.toUpperCase():rawIdentifier
- try {accountEmail(identifier)} catch {redirect(success)}
- try {
-  const admin=createAdminClient()
-  const query=category==='Admin'
-   ?admin.from('users').select('user_id,role,batch').eq('admin_number',identifier).eq('role','clinical_head')
-   :admin.from('users').select('user_id,role,batch').eq('student_number',identifier).eq('role','student').eq('batch',category)
-  const {data:user,error}=await query.maybeSingle()
-  if(!error&&user) await admin.from('password_reset_requests').upsert({user_id:user.user_id,identifier,category,status:'pending',requested_at:new Date().toISOString(),resolved_at:null,resolved_by:null},{onConflict:'user_id',ignoreDuplicates:false})
- } catch(error) {
-  console.error('Password reset request failed:',error instanceof Error?error.message:'Unknown server error')
- }
- redirect(success)
+function resetError(message:string):never{
+ redirect('/forgot-password?error='+encodeURIComponent(message))
+}
+
+export async function resetStudentPassword(form:FormData){
+ const studentNumber=String(form.get('student_number')||'').trim()
+ const batch=String(form.get('batch')||'').trim()
+ const password=String(form.get('password')||'')
+ const confirmation=String(form.get('confirm_password')||'')
+ if(!/^\d{4}-\d{6}$/.test(studentNumber))resetError('Use the student ID format YYYY-NNNNNN.')
+ if(!batch)resetError('Choose your batch.')
+ if(password.length<12||password.length>128)resetError('Use a password from 12 to 128 characters.')
+ if(password!==confirmation)resetError('The passwords do not match.')
+
+ const admin=createAdminClient()
+ const {data:student,error:lookupError}=await admin.from('users').select('user_id,batch,role,is_active').eq('student_number',studentNumber).maybeSingle()
+ if(lookupError||!student||student.role!=='student'||student.batch!==batch)resetError('No student account matches that ID and batch.')
+ if(student.is_active===false)resetError('This account is suspended. Contact your Clinical Head.')
+ const {error}=await admin.auth.admin.updateUserById(student.user_id,{password})
+ if(error)resetError('The password could not be changed. Please try again.')
+ redirect('/login?message='+encodeURIComponent('Password changed. Sign in with your new password.'))
 }

@@ -55,7 +55,7 @@
 .noSchedule{display:flex;align-items:center;gap:6px;color:#7f8b9a;font-size:9px;margin-top:8px;padding:6px 2px}
 .empty{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:14px 16px;border:1px solid #dce3eb;border-radius:11px;background:#f7f9fb;color:#586a7f}
 .empty strong,.empty small{display:block}.empty strong{font-size:12px}.empty small{font-size:10px;line-height:1.5;margin-top:3px;color:#758397}
-@media(max-width:700px){.section{margin-top:28px}.header{align-items:flex-start;flex-direction:column;gap:14px}.controls{width:100%}.controls label{flex:1}.monthSummary>strong{width:100%;margin-bottom:2px}.calendar{grid-template-columns:repeat(7,92px);min-width:676px}.day{min-height:116px;padding:8px}.mobileHint{display:block}.calendarViewport{margin-inline:-4px;padding:4px}.legend{gap:6px}.legend span{padding:6px 8px}.slotLink,.registered,.full{padding:7px 6px}}
+@media(max-width:700px){.section{margin-top:0}.header{align-items:flex-start;flex-direction:column;gap:14px}.controls{width:100%}.controls label{flex:1}.monthSummary>strong{width:100%;margin-bottom:2px}.calendar{grid-template-columns:repeat(7,92px);min-width:676px}.day{min-height:116px;padding:8px}.mobileHint{display:block}.calendarViewport{margin-inline:-4px;padding:4px}.legend{gap:6px}.legend span{padding:6px 8px}.slotLink,.registered,.full{padding:7px 6px}}
 :global(html[data-theme="dark"]) .header h2{color:#f0f4f9}
 :global(html[data-theme="dark"]) .header>div>p:last-child,:global(html[data-theme="dark"]) .mobileHint{color:#a6b2c2}
 :global(html[data-theme="dark"]) .controls button,:global(html[data-theme="dark"]) .controls input,:global(html[data-theme="dark"]) .monthSummary{background:#111b2a!important;border-color:#34445b;color:#dce5f1}

@@ -8,13 +8,19 @@ export async function createSchedule(form:FormData) {
  const id=Number(form.get('schedule_id'))
  const batch=String(form.get('batch')||'')
  const payload={date:String(form.get('date')),time_slot:String(form.get('time_slot')),max_capacity:Number(form.get('max_capacity')),year_level:String(form.get('year_level')),batch:batch||null,clinical_area:String(form.get('clinical_area')||'').trim(),status:String(form.get('status')||'open')}
- let error
+ let error,completionMessage=''
  if(form.get('operation')==='delete') {
   if(!Number.isInteger(id)||id<1) redirect('/admin/schedule?error=Invalid+schedule')
-  const {count,error:registrationCheckError}=await supabase.from('registrations').select('registration_id',{count:'exact',head:true}).eq('schedule_id',id)
-  if(registrationCheckError) redirect('/admin/schedule?error=Unable+to+verify+whether+this+schedule+has+registration+history.+Please+try+again.')
-  if((count||0)>0) redirect('/admin/schedule?error=This+schedule+cannot+be+deleted+because+it+has+registration+history.+Close+the+schedule+to+keep+it+unavailable.')
-  ;({error}=await supabase.from('mud_schedules').delete().eq('schedule_id',id))
+  const [{data:schedule,error:scheduleError},{data:registrations,error:registrationCheckError}]=await Promise.all([
+   supabase.from('mud_schedules').select('date').eq('schedule_id',id).is('archived_at',null).maybeSingle(),
+   supabase.from('registrations').select('status').eq('schedule_id',id)
+  ])
+  if(scheduleError||!schedule||registrationCheckError)redirect('/admin/schedule?error=Unable+to+verify+this+schedule.+Please+try+again.')
+  if(!registrations?.length){({error}=await supabase.from('mud_schedules').delete().eq('schedule_id',id));completionMessage='Schedule deleted.'}
+  else{
+   ;({error}=await supabase.from('mud_schedules').update({status:'closed',archived_at:new Date().toISOString()}).eq('schedule_id',id))
+   completionMessage='Schedule deleted from active calendars. Registration history was retained.'
+  }
  }
  else {
   if(batch){try{await getBatchRule(batch)}catch{redirect('/admin/schedule?error=Choose+an+active+batch')}}
@@ -29,5 +35,5 @@ export async function createSchedule(form:FormData) {
   redirect('/admin/schedule?error='+encodeURIComponent(message))
  }
  revalidateTag('schedules');revalidatePath('/admin/schedule');revalidatePath('/student','layout')
- redirect('/admin/schedule?message='+encodeURIComponent(form.get('operation')==='delete'?'Schedule deleted.':id?'Schedule changes saved.':'Schedule created.'))
+ redirect('/admin/schedule?message='+encodeURIComponent(form.get('operation')==='delete'?completionMessage:id?'Schedule changes saved.':'Schedule created.'))
 }

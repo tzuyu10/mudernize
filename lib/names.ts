@@ -12,5 +12,6 @@ export function normalizeMiddleInitial(value:FormDataEntryValue|null){
 
 export function displayName(person:PersonName){
  const middle=person.middle_initial?.trim().replace(/\.$/,'').toUpperCase()
- return [person.first_name,middle?`${middle}.`:null,person.last_name].filter(Boolean).join(' ')
+ const given=[person.first_name,middle?`${middle}.`:null].filter(Boolean).join(' ')
+ return [person.last_name,given].filter(Boolean).join(', ')
 }

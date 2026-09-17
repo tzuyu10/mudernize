@@ -11,9 +11,9 @@ import styles from './signup.module.css'
 function Eye({closed}:{closed:boolean}){
  return <svg viewBox="0 0 24 24" aria-hidden="true">{closed?<><path d="m3 3 18 18M10 5a13 13 0 0 1 12 7 17 17 0 0 1-4 5M6 6a17 17 0 0 0-4 6s3 7 10 7c1 0 2 0 3-1"/><path d="M9 9a4 4 0 0 0 6 6"/></>:<><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></>}</svg>
 }
-function Submit(){
+function Submit({label,pendingLabel}:{label:string;pendingLabel:string}){
  const {pending}=useFormStatus()
- return <button className={styles.submit} disabled={pending}>{pending?'Creating account…':'Create student account'}{pending?<span className={styles.spinner}/>:<span aria-hidden="true">→</span>}</button>
+ return <button className={styles.submit} disabled={pending}>{pending?pendingLabel:label}{pending?<span className={styles.spinner}/>:<span aria-hidden="true">→</span>}</button>
 }
 export default function SignupScreen({batches,error}:{batches:BatchConfig[];error?:string}){
  const [batch,setBatch]=useState(batches[0]?.name||'')
@@ -41,7 +41,7 @@ export default function SignupScreen({batches,error}:{batches:BatchConfig[];erro
      <label>Password<div className={styles.password}><input name="password" type={showPassword?'text':'password'} required minLength={12} maxLength={128} autoComplete="new-password" placeholder="At least 12 characters"/><button type="button" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide passwords':'Show passwords'} aria-pressed={showPassword}><Eye closed={showPassword}/></button></div></label>
      <label>Confirm password<div className={styles.password}><input name="confirm_password" type={showPassword?'text':'password'} required minLength={12} maxLength={128} autoComplete="new-password" placeholder="Enter it again"/></div></label>
     </div>
-    <Submit/>
+    <Submit label="Create student account" pendingLabel="Creating account…"/>
    </form>
    <p className={styles.signin}>Already have an account? <Link href="/login">Sign in</Link></p>
   </section></div>

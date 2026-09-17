@@ -42,24 +42,6 @@ export async function adjustStudentTally(form:FormData) {
  redirect('/admin/students?message=Tally+updated')
 }
 
-export async function resetStudentPassword(form:FormData) {
- const {user}=await requireUser('clinical_head')
- const userId=String(form.get('user_id')||'')
- const requestId=Number(form.get('request_id'))
- const password=String(form.get('password')||'')
- if(!/^[0-9a-f-]{36}$/i.test(userId)||!Number.isInteger(requestId)||password.length<12||password.length>128) redirect('/admin/students?error=Use+a+temporary+password+of+12–128+characters')
- const admin=createAdminClient()
- const {data:request,error:requestError}=await admin.from('password_reset_requests').update({status:'resolved',resolved_at:new Date().toISOString(),resolved_by:user.id}).eq('request_id',requestId).eq('user_id',userId).eq('status','pending').select('request_id').maybeSingle()
- if(requestError||!request) redirect('/admin/students?error='+encodeURIComponent('This password reset request is no longer pending. Refresh the page and try again.'))
- const {error}=await admin.auth.admin.updateUserById(userId,{password})
- if(error){
-  await admin.from('password_reset_requests').update({status:'pending',resolved_at:null,resolved_by:null}).eq('request_id',requestId).eq('user_id',userId).eq('status','resolved')
-  redirect('/admin/students?error='+encodeURIComponent(error.message))
- }
- revalidatePath('/admin/students')
- redirect('/admin/students?message=Temporary+password+set')
-}
-
 export async function updateStudentAccount(form:FormData){
  await requireUser('clinical_head')
  const userId=String(form.get('user_id')||''),first=String(form.get('first_name')||'').trim(),last=String(form.get('last_name')||'').trim(),yearSection=String(form.get('year_section')||'').trim().toUpperCase()
@@ -90,13 +72,4 @@ export async function setStudentAccess(form:FormData){
  if(error){await admin.auth.admin.updateUserById(userId,{ban_duration:active?'876000h':'none'});redirect('/admin/students?error='+encodeURIComponent(error.message))}
  revalidatePath('/admin/students')
  redirect('/admin/students?message='+encodeURIComponent(active?'Student access restored.':'Student access suspended.'))
-}
-
-export async function issueStudentPassword(form:FormData){
- await requireUser('clinical_head')
- const userId=String(form.get('user_id')||''),password=String(form.get('password')||'')
- if(!/^[0-9a-f-]{36}$/i.test(userId)||password.length<12||password.length>128)redirect('/admin/students?error=Use+a+temporary+password+of+12–128+characters')
- const {error}=await createAdminClient().auth.admin.updateUserById(userId,{password})
- if(error)redirect('/admin/students?error='+encodeURIComponent(error.message))
- redirect('/admin/students?message=Temporary+password+set')
 }

@@ -18,4 +18,4 @@ for(const [label,args] of checks){
  console.log(`[predeploy] ${label} passed.`)
 }
 
-console.log(`\n[predeploy] All ${checks.length} checks passed.${withDatabase?' Database migration 009 is available.':' Run npm run test:predeploy:db after applying the database migrations.'}`)
+console.log(`\n[predeploy] All ${checks.length} checks passed.${withDatabase?' Database migration 013 is available.':' Run npm run test:predeploy:db after applying the database migrations.'}`)
