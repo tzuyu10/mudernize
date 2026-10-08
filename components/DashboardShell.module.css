@@ -136,6 +136,29 @@
 .admin :global(.dangerButton:hover){background:linear-gradient(90deg,#d2475f 0%,#9e233a 100%);transform:translateY(-1px)}
 .admin :global(.dangerButton:disabled){cursor:not-allowed;opacity:.55;transform:none;box-shadow:none}
 .admin :global(.schedule-delete-note){margin-top:10px;color:#6b7789;font-size:10px;line-height:1.5}
+.admin :global(.schedule-roster){margin-top:18px;padding:18px;border:1px solid #d6e0eb;border-radius:12px;background:#f7f9fc}
+.admin :global(.schedule-roster-heading){display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.admin :global(.schedule-roster-heading .eyebrow){margin-bottom:5px}
+.admin :global(.schedule-roster-heading h3){font-size:16px;font-weight:750;color:#182d49}
+.admin :global(.schedule-roster-list){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.admin :global(.schedule-roster-card){min-width:0;padding:13px;border:1px solid #d7e1eb;border-radius:10px;background:#fff}
+.admin :global(.schedule-roster-student){display:flex;align-items:center;gap:10px;min-width:0}
+.admin :global(.schedule-roster-avatar){display:grid;place-items:center;flex:0 0 35px;width:35px;height:35px;border-radius:50%;background:linear-gradient(135deg,#eedd55,#0a5ca8 35%,#062a78);color:#fff;font-size:10px;font-weight:800;text-shadow:0 1px 2px #001a3d99}
+.admin :global(.schedule-roster-student>div){min-width:0}
+.admin :global(.schedule-roster-student strong),.admin :global(.schedule-roster-student small){display:block;overflow-wrap:anywhere}
+.admin :global(.schedule-roster-student strong){font-size:12px;color:#1b304d}
+.admin :global(.schedule-roster-student small){margin-top:3px;color:#6a7b90;font-size:9px}
+.admin :global(.schedule-roster-meta){display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid #e2e8ef}
+.admin :global(.schedule-roster-meta small),.admin :global(.schedule-roster-meta strong){display:block}
+.admin :global(.schedule-roster-meta small){color:#7a899b;font-size:7px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.admin :global(.schedule-roster-meta strong){margin-top:4px;color:#344b67;font-size:9px;line-height:1.35}
+.admin :global(.schedule-roster-meta .badge){display:inline-flex;margin-top:3px}
+:global(html[data-theme="dark"]) .admin :global(.schedule-roster){background:#121f30;border-color:#35475e}
+:global(html[data-theme="dark"]) .admin :global(.schedule-roster-heading h3),:global(html[data-theme="dark"]) .admin :global(.schedule-roster-student strong){color:#edf3fa}
+:global(html[data-theme="dark"]) .admin :global(.schedule-roster-card){background:#111b2a;border-color:#34445a}
+:global(html[data-theme="dark"]) .admin :global(.schedule-roster-student small),:global(html[data-theme="dark"]) .admin :global(.schedule-roster-meta small){color:#a8b6c7}
+:global(html[data-theme="dark"]) .admin :global(.schedule-roster-meta){border-color:#2d3d51}
+:global(html[data-theme="dark"]) .admin :global(.schedule-roster-meta strong){color:#d6e0ec}
 :global(html[data-theme="dark"]) .admin :global(.schedule-delete-note){color:#aab6c5}
 .admin :global(.adminSecondary){display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 15px;border:2px solid transparent;border-radius:8px;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#eedd55 0%,#062a78 100%) border-box;color:#054191;font-weight:700}
 .admin :global(.verification-filters){display:grid;grid-template-columns:minmax(300px,1.6fr) minmax(150px,.7fr) minmax(150px,.7fr);align-items:end;gap:14px}
@@ -194,6 +217,8 @@
 :global(html[data-theme="dark"]) .admin :global(.admin-password-toggle){color:#afbdd0}
 :global(html[data-theme="dark"]) .admin :global(.admin-password-toggle:hover){background:#203049;color:#fff}
 @media(max-width:640px){.admin :global(.admin-add-student-grid){grid-template-columns:1fr}.admin :global(.schedule-actions)>button,.admin :global(.schedule-actions) form,.admin :global(.schedule-actions) form button{width:100%}}
+@media(max-width:760px){.admin :global(.schedule-roster-list){grid-template-columns:1fr}}
+@media(max-width:480px){.admin :global(.schedule-roster){padding:14px}.admin :global(.schedule-roster-heading){align-items:stretch;flex-direction:column;gap:8px}.admin :global(.schedule-roster-heading>.badge){align-self:flex-start}.admin :global(.schedule-roster-meta){grid-template-columns:1fr 1fr}.admin :global(.schedule-roster-meta>span:last-child){grid-column:1/-1}}
 
 /* Consistent search controls and button alignment. */
 .search{gap:4px;padding:0 4px 0 11px}
@@ -569,20 +594,43 @@
 }
 @media(max-width:390px){.shell{--workspace-gutter:10px}}
 
-/* Clinical Head gradients keep white labels readable across the gold segment. */
-.admin .nav a.active,
+/* A fixed-width gold accent stays clear of labels at every button width. */
+.admin{--admin-button-gradient:linear-gradient(90deg,#eedd55 0px,#c3c178 3px,#669ca0 7px,#246caa 12px,#09529f 18px,#073582 100%)}
+.admin .nav a.active{background:var(--admin-button-gradient);color:#fff}
 .admin :global(.primary),
 .admin :global(.adminAction),
 .admin :global(.adminHeroAction),
 .admin :global(.adminIconButton){
- background:linear-gradient(90deg,#eedd55 0%,#d7c84d 7%,#0a5ca8 20%,#062a78 100%);
- border-color:#2c69a5;
+ background:var(--admin-button-gradient);
+ border:1px solid #3b75b2;
  color:#fff;
- text-shadow:0 1px 2px #001a3d99;
- box-shadow:0 6px 16px #05419124;
+ text-shadow:0 1px 1px #00204d66;
+ box-shadow:0 3px 9px #05419120,inset 0 1px 0 #ffffff14;
+ transition:filter 180ms ease,box-shadow 180ms ease,border-color 180ms ease;
 }
-.admin .nav a.active:hover,
 .admin :global(.primary:hover),
 .admin :global(.adminAction:hover),
 .admin :global(.adminHeroAction:hover),
-.admin :global(.adminIconButton:hover){background:linear-gradient(90deg,#f3df68 0%,#dfcf55 7%,#0b68bb 20%,#073682 100%);color:#fff}
+.admin :global(.adminIconButton:hover){
+ background:var(--admin-button-gradient);
+ color:#fff;
+ transform:none;
+ filter:brightness(1.06);
+ box-shadow:0 4px 12px #0541912b,inset 0 1px 0 #ffffff20;
+}
+.admin :global(.primary:focus-visible),
+.admin :global(.adminAction:focus-visible),
+.admin :global(.adminHeroAction:focus-visible),
+.admin :global(.adminIconButton:focus-visible){outline:3px solid #568ee0;outline-offset:3px}
+.admin :global(.primary:active),.admin :global(.adminAction:active),.admin :global(.adminHeroAction:active),.admin :global(.adminIconButton:active){filter:brightness(.96);box-shadow:inset 0 2px 4px #001c4733}
+.admin :global(.primary:disabled),.admin :global(.adminAction:disabled),.admin :global(.adminHeroAction:disabled),.admin :global(.adminIconButton:disabled){filter:none;transform:none;box-shadow:none}
+:global(html[data-theme="dark"]) .admin .nav a.active{background:var(--admin-button-gradient);color:#fff}
+:global(html[data-theme="dark"]) .admin :global(.primary),:global(html[data-theme="dark"]) .admin :global(.adminAction),:global(html[data-theme="dark"]) .admin :global(.adminHeroAction),:global(html[data-theme="dark"]) .admin :global(.adminIconButton){border-color:#5688be}
+@media(prefers-reduced-motion:reduce){
+ .admin :global(.primary),.admin :global(.adminAction),.admin :global(.adminHeroAction),.admin :global(.adminIconButton){transition:none}
+}
+
+/* Separate the schedule title and capacity badge while preserving the disclosure marker. */
+.admin :global(.schedule-summary-content){display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px 12px;max-width:calc(100% - 24px);vertical-align:middle}
+.admin :global(.schedule-summary-content>span:first-child){min-width:0;overflow-wrap:anywhere}
+.admin :global(.schedule-summary-content>.badge){flex:none;white-space:nowrap;margin:0}

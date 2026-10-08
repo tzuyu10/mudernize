@@ -7,6 +7,17 @@ import AdminScheduleCalendar from '@/components/AdminScheduleCalendar'
 import ConfirmButton from '@/components/ConfirmButton'
 import ResetAfterSubmitForm from '@/components/ResetAfterSubmitForm'
 import {getAllSchedules} from '@/lib/cached-data'
+import {displayName} from '@/lib/names'
+
+type ScheduleRegistration={
+ registration_id:number
+ schedule_id:number
+ status:string
+ duty_type:string
+ duty_count:number
+ submitted_at:string
+ users:{first_name:string;middle_initial:string|null;last_name:string;student_number:string|null;batch:string|null;year_level:string|null;year_section:string|null}|null
+}
 
 function Fields({schedule,batches}:{schedule:any;batches:string[]}){
  return <div className="admin-form-grid">
@@ -23,9 +34,14 @@ function Fields({schedule,batches}:{schedule:any;batches:string[]}){
 export default async function Page({searchParams:searchParamsPromise}:{searchParams:Promise<{error?:string;message?:string}>}){
  const searchParams=await searchParamsPromise
  const {supabase}=await requireUser('clinical_head')
- const [{data,error},{data:batchConfigs},{data:registrationLinks,error:registrationLinksError}]=await Promise.all([getAllSchedules(),getBatchConfigs(),supabase.from('registrations').select('schedule_id,status')]),schedules=data||[],batches=batchConfigs.map(batch=>batch.name)
- const registrationsBySchedule=new Map<number,string[]>()
- for(const row of registrationLinks||[])registrationsBySchedule.set(row.schedule_id,[...(registrationsBySchedule.get(row.schedule_id)||[]),row.status])
+ const [{data,error},{data:batchConfigs},{data:registrationLinks,error:registrationLinksError}]=await Promise.all([
+  getAllSchedules(),
+  getBatchConfigs(),
+  supabase.from('registrations').select('registration_id,schedule_id,status,duty_type,duty_count,submitted_at,users!registrations_student_id_fkey(first_name,middle_initial,last_name,student_number,batch,year_level,year_section)')
+ ]),schedules=data||[],batches=batchConfigs.map(batch=>batch.name)
+ const registrationRows=(registrationLinks||[]).map(row=>({...row,users:(Array.isArray(row.users)?row.users[0]:row.users)||null})) as ScheduleRegistration[]
+ const registrationsBySchedule=new Map<number,ScheduleRegistration[]>()
+ for(const row of registrationRows)registrationsBySchedule.set(row.schedule_id,[...(registrationsBySchedule.get(row.schedule_id)||[]),row])
  const scheduleError=searchParams.error?.includes('registrations_schedule_id_fkey')||searchParams.error?.includes('violates foreign key constraint')?'This schedule cannot be deleted because it has registration history. Close the schedule to keep it unavailable.':searchParams.error
  return <div className="space-y-6 page-stack">
   <div className="admin-page-heading page-heading"><div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Duty Schedules</h1><p className="muted text-sm">Create and manage the dates available to students.</p></div><ScheduleCreateModal batches={batches}/></div>
@@ -34,7 +50,26 @@ export default async function Page({searchParams:searchParamsPromise}:{searchPar
   <p className="muted text-sm">Dates and audiences are locked once a slot has registrations. Select a calendar entry to open its settings.</p>
   <AdminScheduleCalendar schedules={schedules}/>
   <h2 className="text-lg font-semibold">Schedule Details</h2>
-  <div className="space-y-3">{schedules.map(schedule=>{const editFormId=`schedule-edit-${schedule.schedule_id}`,statuses=registrationsBySchedule.get(schedule.schedule_id)||[],hasHistory=statuses.length>0;return <details id={`schedule-${schedule.schedule_id}`} key={schedule.schedule_id} className="dashboardCard p-5"><summary className="cursor-pointer font-semibold">{schedule.date} · {schedule.time_slot} · {schedule.batch||'All Batches'} <span className="badge">{schedule.current_count}/{schedule.max_capacity} · {displayLabel(schedule.status)}</span></summary><ResetAfterSubmitForm id={editFormId} action={createSchedule} className="space-y-4 mt-4"><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><Fields schedule={schedule} batches={batches}/></ResetAfterSubmitForm><div className="schedule-actions"><ConfirmButton form={editFormId} className="primary" message="Save these schedule changes?">Save Changes</ConfirmButton>{registrationLinksError?<button type="button" className="dangerButton" disabled title="Refresh before deleting this schedule">Deletion Unavailable</button>:<form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton message={hasHistory?'Delete this schedule from active calendars? Registration history will be retained.':'Delete this empty schedule? This action cannot be undone.'} name="operation" value="delete" className="dangerButton">Delete Schedule</ConfirmButton></form>}</div>{hasHistory&&<p className="schedule-delete-note">Registration history will remain available after this schedule is removed from active calendars.</p>}</details>})}</div>
+  <div className="space-y-3">{schedules.map(schedule=>{
+   const editFormId=`schedule-edit-${schedule.schedule_id}`
+   const registrations=registrationsBySchedule.get(schedule.schedule_id)||[]
+   const activeRegistrations=registrations.filter(row=>row.status!=='denied'&&row.users).sort((a,b)=>displayName(a.users||{}).localeCompare(displayName(b.users||{}),'en',{sensitivity:'base'}))
+   const hasHistory=registrations.length>0
+   const isFull=schedule.current_count>=schedule.max_capacity
+   return <details id={`schedule-${schedule.schedule_id}`} key={schedule.schedule_id} className="dashboardCard p-5">
+    <summary className="cursor-pointer font-semibold"><span className="schedule-summary-content"><span>{schedule.date} · {schedule.time_slot} · {schedule.batch||'All Batches'}</span><span className="badge">{schedule.current_count}/{schedule.max_capacity} · {isFull?'Full':displayLabel(schedule.status)}</span></span></summary>
+    {activeRegistrations.length>0&&<section className="schedule-roster" aria-labelledby={`schedule-roster-${schedule.schedule_id}`}>
+     <div className="schedule-roster-heading"><div><p className="eyebrow">ASSIGNED STUDENTS</p><h3 id={`schedule-roster-${schedule.schedule_id}`}>Students in this duty slot</h3></div><span className="badge">{activeRegistrations.length} Student{activeRegistrations.length===1?'':'s'}</span></div>
+     <div className="schedule-roster-list">{activeRegistrations.map(registration=><article className="schedule-roster-card" key={registration.registration_id}>
+      <div className="schedule-roster-student"><span className="schedule-roster-avatar" aria-hidden="true">{registration.users!.first_name[0]}{registration.users!.last_name[0]}</span><div><strong>{displayName(registration.users||{})}</strong><small>{registration.users!.student_number} · {registration.users!.batch}</small></div></div>
+      <div className="schedule-roster-meta"><span><small>Year &amp; Section</small><strong>{registration.users!.year_section||`${registration.users!.year_level||'—'} year`}</strong></span><span><small>Duty</small><strong>{displayLabel(registration.duty_type)} · {registration.duty_count}</strong></span><span><small>Status</small><strong className="badge">{displayLabel(registration.status)}</strong></span></div>
+     </article>)}</div>
+    </section>}
+    <ResetAfterSubmitForm id={editFormId} action={createSchedule} className="space-y-4 mt-4"><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><Fields schedule={schedule} batches={batches}/></ResetAfterSubmitForm>
+    <div className="schedule-actions"><ConfirmButton form={editFormId} className="primary" message="Save these schedule changes?">Save Changes</ConfirmButton>{registrationLinksError?<button type="button" className="dangerButton" disabled title="Refresh before deleting this schedule">Deletion Unavailable</button>:<form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton message={hasHistory?'Delete this schedule from active calendars? Registration history will be retained.':'Delete this empty schedule? This action cannot be undone.'} name="operation" value="delete" className="dangerButton">Delete Schedule</ConfirmButton></form>}</div>
+    {hasHistory&&<p className="schedule-delete-note">Registration history will remain available after this schedule is removed from active calendars.</p>}
+   </details>
+  })}</div>
   {!schedules.length&&!error&&<div className="dashboardCard p-8 text-center muted">No schedules have been created.</div>}
  </div>
 }
