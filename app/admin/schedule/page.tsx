@@ -42,13 +42,15 @@ export default async function Page({searchParams:searchParamsPromise}:{searchPar
  const registrationRows=(registrationLinks||[]).map(row=>({...row,users:(Array.isArray(row.users)?row.users[0]:row.users)||null})) as ScheduleRegistration[]
  const registrationsBySchedule=new Map<number,ScheduleRegistration[]>()
  for(const row of registrationRows)registrationsBySchedule.set(row.schedule_id,[...(registrationsBySchedule.get(row.schedule_id)||[]),row])
- const scheduleError=searchParams.error?.includes('registrations_schedule_id_fkey')||searchParams.error?.includes('violates foreign key constraint')?'This schedule cannot be deleted because it has registration history. Close the schedule to keep it unavailable.':searchParams.error
+ const {data:archived,error:archiveError}=await supabase.from('mud_schedules').select('schedule_id,date,time_slot,clinical_area').not('archived_at','is',null).order('date',{ascending:false})
+ const scheduleError=searchParams.error?.includes('registrations_schedule_id_fkey')||searchParams.error?.includes('violates foreign key constraint')?'This schedule cannot be deleted because it has registration history. Archive it to preserve those records.':searchParams.error
  return <div className="space-y-6 page-stack">
   <div className="admin-page-heading page-heading"><div><p className="eyebrow">CLINICAL HEAD WORKSPACE</p><h1>Duty Schedules</h1><p className="muted text-sm">Create and manage the dates available to students.</p></div><ScheduleCreateModal batches={batches}/></div>
   {(scheduleError||error||registrationLinksError)&&<p role="alert" className="notice">{scheduleError||error?.message||(registrationLinksError?'Schedule deletion availability could not be checked. Refresh the page before making changes.':'')}</p>}
   {searchParams.message&&<p role="status" className="notice success-notice">{searchParams.message}</p>}
   <p className="muted text-sm">Dates and audiences are locked once a slot has registrations. Select a calendar entry to open its settings.</p>
   <AdminScheduleCalendar schedules={schedules}/>
+  <section className="dashboardCard p-6 space-y-3"><h2>Archived Schedules</h2><p className="muted text-sm">Archived schedules retain their registrations and can be restored.</p>{archiveError?<p role="alert">Archived schedules could not be loaded.</p>:!archived?.length?<p className="muted">No archived schedules.</p>:archived.map(schedule=><div key={schedule.schedule_id} className="schedule-actions"><span>{schedule.date} · {schedule.time_slot} · {schedule.clinical_area}</span><form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton name="operation" value="restore" className="adminSecondary" message="Restore this schedule as closed?">Restore</ConfirmButton></form></div>)}</section>
   <h2 className="text-lg font-semibold">Schedule Details</h2>
   <div className="space-y-3">{schedules.map(schedule=>{
    const editFormId=`schedule-edit-${schedule.schedule_id}`
@@ -66,8 +68,8 @@ export default async function Page({searchParams:searchParamsPromise}:{searchPar
      </article>)}</div>
     </section>}
     <ResetAfterSubmitForm id={editFormId} action={createSchedule} className="space-y-4 mt-4"><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><Fields schedule={schedule} batches={batches}/></ResetAfterSubmitForm>
-    <div className="schedule-actions"><ConfirmButton form={editFormId} className="primary" message="Save these schedule changes?">Save Changes</ConfirmButton>{registrationLinksError?<button type="button" className="dangerButton" disabled title="Refresh before deleting this schedule">Deletion Unavailable</button>:<form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton message={hasHistory?'Delete this schedule from active calendars? Registration history will be retained.':'Delete this empty schedule? This action cannot be undone.'} name="operation" value="delete" className="dangerButton">Delete Schedule</ConfirmButton></form>}</div>
-    {hasHistory&&<p className="schedule-delete-note">Registration history will remain available after this schedule is removed from active calendars.</p>}
+    <div className="schedule-actions"><ConfirmButton form={editFormId} className="primary" message="Save these schedule changes?">Save Changes</ConfirmButton><form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton name="operation" value="archive" className="adminSecondary" message="Archive this schedule? Its registrations and history will be preserved.">Archive</ConfirmButton></form><form action={createSchedule}><input type="hidden" name="schedule_id" value={schedule.schedule_id}/><ConfirmButton name="operation" value="delete" className="dangerButton" disabled={!!registrationLinksError||hasHistory} message="Permanently delete this empty schedule? This cannot be undone.">Delete</ConfirmButton></form></div>
+    {hasHistory&&<p className="schedule-delete-note">This schedule has registration history. Archive preserves those records; Delete is only available for schedules without registrations.</p>}
    </details>
   })}</div>
   {!schedules.length&&!error&&<div className="dashboardCard p-8 text-center muted">No schedules have been created.</div>}

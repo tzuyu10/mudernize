@@ -276,3 +276,25 @@ Do not place the public URL, service-role key, database password, and user passw
 - [Supabase production checklist](https://supabase.com/docs/guides/deployment/going-into-prod)
 - [Supabase Auth redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls)
 - [Supabase Storage upload limits](https://supabase.com/docs/guides/storage/uploads/file-limits)
+## Live updates after deployment
+Before deploying this version, run database/014_signup_muds.sql (if not already
+applied), then database/015_live_updates.sql in the Supabase SQL Editor.
+The latter adds one authenticated Realtime subscription source containing only
+a revision counter. It does not publish student records or uploaded documents.
+See https://supabase.com/docs/guides/realtime/postgres-changes for publication setup.
+
+Redeploy the app. Saves refresh the current dashboard; other open dashboards
+receive the database signal and refresh automatically. Multiple events are
+combined into one refresh, and hidden/offline tabs catch up when reopened.
+Periodic refreshes provide recovery when the live connection is unavailable.
+No manual browser reload is needed after saving.
+
+Run npm run test:predeploy locally. For concurrent development, the dev server
+uses .next-dev while deployment builds use .next. Restart an already running
+dev server once after this update. MUDERNIZE_BUILD_DIR is an optional local
+build-check override; leave it unset in the deployment platform.
+
+Validate with two test sessions (admin and student): change a tally, schedule,
+announcement and registration status, and confirm the other dashboard updates.
+Also check tab switching, reconnection and preservation of unsaved form input.
+The migration must be installed before testing cross-session live updates.

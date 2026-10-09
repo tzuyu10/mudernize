@@ -1,5 +1,6 @@
 'use server'
 import { requireUser } from '@/lib/auth'
+import {hasPrivacyConsent,PRIVACY_NOTICE_VERSION} from '@/lib/privacy'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import {calculateTallyBalances,type DutyCategory} from '@/lib/tally'
@@ -9,6 +10,8 @@ export async function registerForSchedule(form:FormData) {
  let failure=''
  const uploadedPaths:string[]=[]
  try {
+  if(!hasPrivacyConsent(form))throw new Error('Please review and accept the Terms & Privacy Notice before submitting documents.')
+  const privacyAcceptedAt=new Date().toISOString()
   const type=String(form.get('duty_type'))
   const missedCount=Number(form.get('missed_count'))
   const count=missedCount // All student registration categories use a 1:1 ratio.
@@ -44,7 +47,7 @@ export async function registerForSchedule(form:FormData) {
    const file=form.get(key) as File
    const ext=file.type==='application/pdf'?'pdf':file.type==='image/png'?'png':'jpg'
    const path=`${user.id}/${crypto.randomUUID()}.${ext}`
-   const {error}=await supabase.storage.from('duty-documents').upload(path,file,{contentType:file.type,upsert:false})
+   const {error}=await supabase.storage.from('duty-documents').upload(path,file,{contentType:file.type,upsert:false,metadata:{privacy_notice_version:PRIVACY_NOTICE_VERSION,privacy_accepted_at:privacyAcceptedAt,privacy_purpose:'duty_registration'}})
    if(error) throw error
    uploads[key]=path
    uploadedPaths.push(path)
@@ -56,6 +59,6 @@ export async function registerForSchedule(form:FormData) {
   failure=e instanceof Error?e.message:'Unable to submit. Check your documents and slot availability.'
  }
  if(failure) redirect(`/student/registration/${id}?error=${encodeURIComponent(failure)}`)
- revalidatePath('/student','layout')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/student/registration?message=Registration+submitted+for+review')
 }

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import {useState} from 'react'
 import {useFormStatus} from 'react-dom'
 import ThemeToggle from '@/components/ThemeToggle'
+import PrivacyConsent from '@/components/PrivacyConsent'
 import type {BatchConfig} from '@/lib/batch-config'
 import {signupStudent} from './actions'
 import styles from './signup.module.css'
@@ -41,6 +42,8 @@ export default function SignupScreen({batches,error}:{batches:BatchConfig[];erro
      <label>Password<div className={styles.password}><input name="password" type={showPassword?'text':'password'} required minLength={12} maxLength={128} autoComplete="new-password" placeholder="At least 12 characters"/><button type="button" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide passwords':'Show passwords'} aria-pressed={showPassword}><Eye closed={showPassword}/></button></div></label>
      <label>Confirm password<div className={styles.password}><input name="confirm_password" type={showPassword?'text':'password'} required minLength={12} maxLength={128} autoComplete="new-password" placeholder="Enter it again"/></div></label>
     </div>
+    <fieldset className={styles.muds}><legend>Required MUDs by category</legend><p>Enter your remaining required duties, including any applicable conversion. Use 0 if none. These counts are saved directly to your tally.</p><div className={styles.grid}>{['Excused','Waived','Unexcused'].map(category=><label key={category}>{category}<input name={'mud_'+category.toLowerCase()} type="number" inputMode="numeric" min={0} max={180} step={1} required placeholder="0"/></label>)}</div></fieldset>
+    <PrivacyConsent purpose="account"/>
     <Submit label="Create student account" pendingLabel="Creating account…"/>
    </form>
    <p className={styles.signin}>Already have an account? <Link href="/login">Sign in</Link></p>

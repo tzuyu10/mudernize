@@ -4,6 +4,7 @@ import {useFormStatus} from 'react-dom'
 import {registerForSchedule} from '@/app/student/registration/actions'
 import {dutyCategories,type DutyCategory,type TallyBalances} from '@/lib/tally'
 import {displayLabel} from '@/lib/labels'
+import PrivacyConsent from '@/components/PrivacyConsent'
 
 function Submit({disabled}:{disabled:boolean}){
  const {pending}=useFormStatus()
@@ -23,6 +24,6 @@ export default function RegistrationForm({id,scheduleDate,tallyBalances,embedded
   <label>Number of duties to register<input type="number" name="missed_count" min="1" max={Math.max(1,maximum)} value={missedCount||1} onChange={event=>setMissedCount(Math.max(1,Math.min(Math.max(1,maximum),Number(event.target.value)||1)))} disabled={disabled} required/></label>
   <p className="text-sm text-slate-500">One registration reserves one schedule seat. Your number of missed duties is submitted for Clinical Head review.</p>
   {type==='waived'?<><label>Medical certificate<input type="file" name="medcert" accept=".pdf,.jpg,.jpeg,.png" required/></label><label>Excuse letter<input type="file" name="excuse_letter" accept=".pdf,.jpg,.jpeg,.png" required/></label></>:<><label>Payment receipt number<input name="receipt_number" required maxLength={100}/></label><label>Receipt of payment<input type="file" name="receipt" accept=".pdf,.jpg,.jpeg,.png" required/></label></>}
-  <p className="text-xs text-slate-500">PDF, JPG or PNG only · Maximum 5 MB per file. Documents are private and visible to you and Clinical Heads.</p><Submit disabled={disabled}/>
+  <p className="text-xs text-slate-500">PDF, JPG or PNG only · Maximum 5 MB per file. Documents are private and visible to you and Clinical Heads.</p><PrivacyConsent key={type} purpose="documents"/><Submit disabled={disabled}/>
  </form>
 }

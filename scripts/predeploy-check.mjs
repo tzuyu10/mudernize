@@ -3,6 +3,8 @@ import {spawnSync} from 'node:child_process'
 const npmEntry=process.env.npm_execpath
 const withDatabase=process.argv.includes('--with-db')
 const checks=[
+ ['Live update behavior',['run','test:live-updates']],
+ ['Signup validation',['run','test:signup']],
  ['TypeScript validation',['run','typecheck']],
  ['Production build',['run','build']],
 ]

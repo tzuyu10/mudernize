@@ -45,3 +45,26 @@ node scripts/prepare-sql-seed.mjs --apply
 Then run `populate_existing.sql` in the Supabase SQL Editor. The preparation command prints the generated password only for newly created accounts. Matching accounts are reused with their existing password.
 
 For provisioning errors, inspect the Supabase Postgres logs. `diagnose_auth_provisioning.sql` reports custom triggers and constraints. `fix_auth_provisioning.sql` reinstalls the deferred MUDernize provisioning trigger without deleting accounts or profiles.
+### Signup MUD counts
+Run 014_signup_muds.sql after migration 013 before deploying signup changes.
+It saves each student's initial Excused, Waived, and Unexcused counts atomically
+with account creation. Counts are actual required duties (0–180 per category),
+without another ratio multiplication. Existing accounts and tallies are unchanged.
+Schedule Archive preserves history and is reversible; Delete permanently removes
+only schedules without linked registrations.
+
+### Live dashboard updates
+Run 015_live_updates.sql after migration 014 and redeploy the application.
+The migration publishes only a revision counter, not student data or documents.
+Admin and student dashboards refresh after committed changes, combining bursts
+into one refresh. Hidden/offline tabs pause refresh work and catch up on return.
+Without Realtime, visible dashboards fall back to periodic refreshes.
+Successful save actions immediately invalidate both role layouts independently
+of the live connection. Data helpers deduplicate reads within each request
+without keeping stale schedules, announcements, or batches between requests.
+
+Deployment verification: open an admin and student dashboard in separate
+browsers. Change a tally, publish/edit/delete an announcement, create or archive
+a schedule, and approve/complete a registration. Check the other browser updates
+without reloading. Hide a tab, make changes, and verify it catches up on return.
+Check open forms retain typed values. Do this with test accounts, not client data.

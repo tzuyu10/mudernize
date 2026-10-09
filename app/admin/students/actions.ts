@@ -23,7 +23,7 @@ export async function addStudent(form:FormData) {
   if(error) throw error
  } catch(error) {failure=error instanceof Error?error.message:'Could not create student'}
  if(failure) redirect('/admin/students?error='+encodeURIComponent(failure))
- revalidatePath('/admin/students')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/admin/students?message=Student+account+created&created='+Date.now())
 }
 
@@ -38,7 +38,7 @@ export async function adjustStudentTally(form:FormData) {
  if(!/^[0-9a-f-]{36}$/i.test(userId)||!['excused','unexcused','waived'].includes(dutyType)||!['increase','decrease'].includes(changeKind)||!Number.isInteger(missedCount)||missedCount<1||missedCount>180||!validRatio||missedCount*ratio>180) redirect('/admin/students?error=Invalid+tally+change')
  const {error}=await supabase.rpc('change_tally_requirement',{target_user:userId,missed_count:missedCount,duty_category:dutyType,duty_ratio:ratio,change_kind:changeKind})
  if(error) redirect('/admin/students?error='+encodeURIComponent(error.message))
- revalidatePath('/admin/students');revalidatePath('/student','layout');revalidatePath('/student/profile');revalidatePath('/student/registration')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/admin/students?message=Tally+updated')
 }
 
@@ -57,7 +57,7 @@ export async function updateStudentAccount(form:FormData){
  if(error)redirect('/admin/students?error='+encodeURIComponent(error.message))
  const {error:authError}=await admin.auth.admin.updateUserById(userId,{app_metadata:{...authRecord.user.app_metadata,first_name:first,middle_initial:middle,last_name:last,year_section:yearSection}})
  if(authError)redirect('/admin/students?error='+encodeURIComponent(authError.message))
- revalidatePath('/admin/students');revalidatePath('/student','layout')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/admin/students?message=Student+profile+updated')
 }
 
@@ -70,6 +70,6 @@ export async function setStudentAccess(form:FormData){
  if(authError)redirect('/admin/students?error='+encodeURIComponent(authError.message))
  const {error}=await admin.from('users').update({is_active:active}).eq('user_id',userId).eq('role','student')
  if(error){await admin.auth.admin.updateUserById(userId,{ban_duration:active?'876000h':'none'});redirect('/admin/students?error='+encodeURIComponent(error.message))}
- revalidatePath('/admin/students')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/admin/students?message='+encodeURIComponent(active?'Student access restored.':'Student access suspended.'))
 }

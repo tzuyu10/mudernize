@@ -17,7 +17,7 @@ export async function updateProfile(form:FormData) {
  if(nameError)redirect('/student/profile?error='+encodeURIComponent(nameError.message))
  const {error}=await admin.from('student_profiles').upsert({...profilePayload,user_id:user.id,updated_at:new Date().toISOString()},{onConflict:'user_id'})
  if(error) redirect('/student/profile?error='+encodeURIComponent(error.message))
- revalidatePath('/student','layout');revalidatePath('/student/profile')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/student/profile?message=Profile+saved')
 }
 
@@ -37,6 +37,6 @@ export async function changeOwnTally(form:FormData){
  if(!['excused','waived','unexcused'].includes(dutyType)||!['increase','decrease'].includes(changeKind)||!Number.isInteger(count)||count<1||count>180)redirect('/student/profile?error=Choose+a+valid+category,+change,+and+a+count+from+1+to+180')
  const {error}=await supabase.rpc('change_own_tally',{duty_category:dutyType,duty_count:count,change_kind:changeKind})
  if(error)redirect('/student/profile?error='+encodeURIComponent(error.message))
- revalidatePath('/student','layout');revalidatePath('/student/profile');revalidatePath('/student/registration');revalidatePath('/admin/students')
+ revalidatePath('/admin','layout');revalidatePath('/student','layout')
  redirect('/student/profile?message='+encodeURIComponent(`${count} ${dutyType} ${count===1?'duty':'duties'} ${changeKind==='increase'?'added to':'removed from'} your tally.`))
 }

@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import {usePathname} from 'next/navigation'
 import {useState,type CSSProperties} from 'react'
+import LiveUpdates from './LiveUpdates'
 import SignOutButton from './SignOutButton'
 import ThemeToggle from './ThemeToggle'
 import styles from './DashboardShell.module.css'
@@ -25,6 +26,7 @@ export default function DashboardShell({children,admin,profile,batchConfig}:{chi
  const searchPage=(term:string)=>document.querySelectorAll('[data-searchable]').forEach(node=>{(node as HTMLElement).style.display=(node.textContent||'').toLowerCase().includes(term.toLowerCase())?'':'none'})
  const batchStyle=!admin&&batchConfig?{'--theme':batchConfig.theme_color,'--soft':`${batchConfig.theme_color}20`,'--on':readableText(batchConfig.theme_color)} as CSSProperties:undefined
  return <div className={`${styles.shell} ${styles[batch.toLowerCase()]||''}`} data-collapsed={collapsed} style={batchStyle}>
+  <LiveUpdates/>
   {mobileOpen&&<button className={styles.scrim} aria-label="Close menu" onClick={()=>setMobileOpen(false)}/>}
   <aside className={`${styles.sidebar} ${mobileOpen?styles.mobileOpen:''}`}>
    <button className={styles.logoRow} onClick={()=>mobileOpen?setMobileOpen(false):setCollapsed(!collapsed)} aria-label={mobileOpen?'Close sidebar':collapsed?'Expand sidebar':'Collapse sidebar'} aria-expanded={!collapsed}><span className={styles.logoMark}><img src="/logos/mudernize-logo.png" alt=""/></span><strong>MUD<span>ernize</span></strong><span className={styles.collapseHint} aria-hidden="true">‹</span></button>
